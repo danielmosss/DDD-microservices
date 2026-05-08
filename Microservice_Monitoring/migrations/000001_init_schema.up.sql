@@ -67,7 +67,8 @@ CREATE TABLE afwijking (
                            meting_time TIMESTAMPTZ NOT NULL,
                            kunstwerk_id BIGINT REFERENCES kunstwerk(id) NOT NULL,
                            time TIMESTAMPTZ NOT NULL,
-                           norm_waarde FLOAT NOT NULL,
+                           norm_min_waarde FLOAT NOT NULL,
+                           norm_max_waarde FLOAT,
                            gemeten_waarde FLOAT NOT NULL,
                            is_warning BOOLEAN NOT NULL,
                            FOREIGN KEY (meting_time, meting_id) REFERENCES meting(time, id)

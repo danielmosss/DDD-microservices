@@ -39,10 +39,22 @@ func StartGeneratingSensorDataAndPublishing() {
 		select {
 		case <-ticker.C:
 			// Genereer een willekeurige meting
-			meting := Meting{
-				SensorID:    1,
-				KunstwerkID: 1,
-				Waarde:      9,
+			randomNumberOneOrTwo := time.Now().Unix()%2 + 1
+
+			meting := Meting{}
+
+			if randomNumberOneOrTwo == 0 {
+				meting = Meting{
+					SensorID:    1,
+					KunstwerkID: 1,
+					Waarde:      11.1,
+				}
+			} else {
+				meting = Meting{
+					SensorID:    2,
+					KunstwerkID: 1,
+					Waarde:      29.2,
+				}
 			}
 
 			// Publiceer de meting op NATS

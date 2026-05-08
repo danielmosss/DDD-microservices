@@ -7,8 +7,6 @@ import (
 
 	"monitoring/internal/app/analyse"
 	"monitoring/internal/domain/models"
-
-	"github.com/google/uuid"
 )
 
 // cacheItem houdt de data én de houdbaarheidsdatum vast
@@ -22,7 +20,7 @@ type CachedConfiguratieRepository struct {
 	next analyse.ConfiguratieRepository
 
 	// Ons in-memory geheugen
-	data map[uuid.UUID]cacheItem
+	data map[int64]cacheItem
 	mu   sync.RWMutex // Voorkomt crashes als NATS met 100 threads tegelijk leest/schrijft
 	ttl  time.Duration
 }
@@ -31,13 +29,13 @@ type CachedConfiguratieRepository struct {
 func NewCachedConfiguratieRepository(next analyse.ConfiguratieRepository, ttl time.Duration) *CachedConfiguratieRepository {
 	return &CachedConfiguratieRepository{
 		next: next,
-		data: make(map[uuid.UUID]cacheItem),
+		data: make(map[int64]cacheItem),
 		ttl:  ttl,
 	}
 }
 
 // GetBySensorID implementeert de interface
-func (c *CachedConfiguratieRepository) GetBySensorID(ctx context.Context, sensorID uuid.UUID) (models.SensorConfiguratie, error) {
+func (c *CachedConfiguratieRepository) GetBySensorID(ctx context.Context, sensorID int64) (models.SensorConfiguratie, error) {
 	// 1. Probeer te lezen uit de cache (Read lock is snel en staat meerdere lezers toe)
 	c.mu.RLock()
 	item, found := c.data[sensorID]

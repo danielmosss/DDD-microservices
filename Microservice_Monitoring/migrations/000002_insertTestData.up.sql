@@ -22,3 +22,17 @@ VALUES (1, 1, 1, 1);
 -- Hier zeggen we: normaal is tussen 0 en 10. Marge is 10%. (Dus 10 tot 11 is een warning, daarboven een harde afwijking).
 INSERT INTO sensorconfiguratie (sensor_id, min_value, max_value, marge_percentage)
 VALUES (1, 0.0, 10.0, 10.0);
+
+
+-- een tweede sencor toevoegen alleen dan zonder range
+INSERT INTO sensortype (id, naam, eenheid, drempel_is_range)
+VALUES (2, 'Temperatuursensor', '°C', false);
+
+-- 7. Koppel de tweede sensor aan het onderdeel en het kunstwerk
+INSERT INTO sensor (kunstwerk_id, onderdeel_id, sensortype_id)
+VALUES (1, 1, 2);
+
+-- 8. Stel de configuratie (bedrijfsregels) in voor de tweede sensor
+-- Hier zeggen we: temparatuur van 30 graden is normaal. Marge is 5%. (Dus boven de 30 graden is een warning, daarboven een harde afwijking).
+INSERT INTO sensorconfiguratie (sensor_id, min_value, max_value, marge_percentage)
+VALUES (2, 30.0, 0, 5.0);

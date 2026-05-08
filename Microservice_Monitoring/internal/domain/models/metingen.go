@@ -30,7 +30,8 @@ type Afwijking struct {
 	MetingTime    time.Time `db:"meting_time" json:"-"`
 	KunstwerkID   int64     `db:"kunstwerk_id" json:"kunstwerkId"`
 	Time          time.Time `db:"time" json:"time"`
-	NormWaarde    float64   `db:"norm_waarde" json:"normWaarde"`
+	NormMinWaarde float64   `db:"norm_min_waarde" json:"normMinWaarde"`
+	NormMaxWaarde float64   `db:"norm_max_waarde" json:"normMaxWaarde"`
 	GemetenWaarde float64   `db:"gemeten_waarde" json:"gemetenWaarde"`
 	IsWarning     bool      `db:"is_warning" json:"isWarning"`
 }

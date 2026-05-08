@@ -63,8 +63,13 @@ func StartConsumingSensorData() {
 			m.NakWithDelay(10 * time.Second)
 		} else {
 			// Only analyze if the meting was saved successfully
-			analyse.AnalyzeIncommingSensorData(meting)
+			err := analyse.AnalyzeIncommingSensorData(meting)
 
+			if err != nil {
+				log.Printf("[SENSOR-CONSUMER] Fout bij analyseren van sensor data: %v", err)
+				m.NakWithDelay(10 * time.Second)
+				return
+			}
 			m.Ack()
 			log.Printf("[SENSOR-CONSUMER] Sensor data netjes afgehandeld (Ack verzonden).")
 		}
