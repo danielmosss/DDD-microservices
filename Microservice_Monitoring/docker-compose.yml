@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # 1. Jouw Database
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=monitoring
+    ports:
+      - "5432:5432" # Opengezet zodat jouw lokale Go-code erbij kan
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d monitoring"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. De Automatische Migrator
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./migrations:/migrations
+    command:
+      - -path=/migrations
+      # Omdat migrate IN het docker netwerk draait, gebruikt hij de hostnaam 'timescaledb'
+      - -database=postgres://user:password@timescaledb:5432/monitoring?sslmode=disable
+      - up
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+  # 3. De Messagebus
+  nats:
+    image: nats:latest
+    command: "-js" # Activeert JetStream
+    ports:
+      - "4222:4222" # Voor je Go code
+      - "8222:8222" # Dashboard voor in je browser
+
+volumes:
+  timescaledb_data:
