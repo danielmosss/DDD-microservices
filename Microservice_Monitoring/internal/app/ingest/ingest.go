@@ -26,7 +26,6 @@ func (s *IngestService) VerwerkMeting(ctx context.Context, inc models.IncMeting)
 		SensorID:    inc.SensorID,
 		KunstwerkID: inc.KunstwerkID,
 		Waarde:      inc.Waarde,
-		IsAfwijking: false,
 		IsHandmatig: false,
 	}
 

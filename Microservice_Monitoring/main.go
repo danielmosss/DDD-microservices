@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"monitoring/internal/infra/messaging"
 	"monitoring/internal/interfaces/consumers"
 	"monitoring/server"
 
@@ -18,5 +19,9 @@ func main() {
 	}
 
 	server.StartDatabaseConnection()
+
+	messaging.StartDailyHealthSummery()
+
+	// Needs to be the last because i put that quit stuff in there
 	consumers.StartConsumingSensorData()
 }

@@ -20,9 +20,9 @@ func NewPostgresAfwijkingRepository(pool *pgxpool.Pool) *PostgresAfwijkingReposi
 
 func (r *PostgresAfwijkingRepository) Save(ctx context.Context, m models.Afwijking) (models.Afwijking, error) {
 	query := `
-		INSERT INTO afwijking (meting_id, meting_time, kunstwerk_id, time, norm_min_waarde, norm_max_waarde, gemeten_waarde, is_warning)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, meting_id, meting_time, kunstwerk_id, time, norm_min_waarde, norm_max_waarde, gemeten_waarde, is_warning
+		INSERT INTO afwijking (meting_id, meting_time, kunstwerk_id, sensor_id, time, norm_min_waarde, norm_max_waarde, gemeten_waarde, is_warning)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id, meting_id, meting_time, kunstwerk_id, sensor_id, time, norm_min_waarde, norm_max_waarde, gemeten_waarde, is_warning
 	`
 
 	var (
@@ -30,6 +30,7 @@ func (r *PostgresAfwijkingRepository) Save(ctx context.Context, m models.Afwijki
 		outMetingId      string
 		outMetingTime    sql.NullTime
 		outKunstwerkID   int64
+		outSensorID      int64
 		outTime          sql.NullTime
 		outNormMinWaarde float64
 		outNormMaxWaarde sql.NullFloat64
@@ -38,8 +39,8 @@ func (r *PostgresAfwijkingRepository) Save(ctx context.Context, m models.Afwijki
 	)
 
 	err := r.pool.QueryRow(ctx, query,
-		m.MetingID, m.MetingTime, m.KunstwerkID, m.Time, m.NormMinWaarde, m.NormMaxWaarde, m.GemetenWaarde, m.IsWarning,
-	).Scan(&outId, &outMetingId, &outMetingTime, &outKunstwerkID, &outTime, &outNormMinWaarde, &outNormMaxWaarde, &outGemetenWaarde, &outIsWarning)
+		m.MetingID, m.MetingTime, m.KunstwerkID, m.SensorID, m.Time, m.NormMinWaarde, m.NormMaxWaarde, m.GemetenWaarde, m.IsWarning,
+	).Scan(&outId, &outMetingId, &outMetingTime, &outKunstwerkID, &outSensorID, &outTime, &outNormMinWaarde, &outNormMaxWaarde, &outGemetenWaarde, &outIsWarning)
 	if err != nil {
 		return models.Afwijking{}, fmt.Errorf("fout bij opslaan afwijking: %w", err)
 	}
@@ -53,6 +54,7 @@ func (r *PostgresAfwijkingRepository) Save(ctx context.Context, m models.Afwijki
 		saved.MetingTime = outMetingTime.Time
 	}
 	saved.KunstwerkID = outKunstwerkID
+	saved.SensorID = outSensorID
 	if outTime.Valid {
 		saved.Time = outTime.Time
 	}

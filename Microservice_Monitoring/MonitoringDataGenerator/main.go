@@ -32,7 +32,7 @@ func StartMessageBroker() {
 
 func StartGeneratingSensorDataAndPublishing() {
 	// Simuleer het genereren van sensor data en publiceer deze elke 5 seconden
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {

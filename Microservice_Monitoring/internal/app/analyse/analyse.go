@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"monitoring/internal/db"
 	"monitoring/internal/domain/models"
+	db2 "monitoring/internal/infra/db"
 	"monitoring/server"
 	"time"
 )
@@ -34,8 +34,8 @@ type AfwijkingRepository interface {
 }
 
 func AnalyzeIncommingSensorData(meting models.Meting) error {
-	serverConfig := db.NewPostgresConfiguratieRepository(server.GetDBPool())
-	afwijkingRepo := db.NewPostgresAfwijkingRepository(server.GetDBPool())
+	serverConfig := db2.NewPostgresConfiguratieRepository(server.GetDBPool())
+	afwijkingRepo := db2.NewPostgresAfwijkingRepository(server.GetDBPool())
 	analyzeService := NewAnalyseService(serverConfig, afwijkingRepo)
 
 	ctx := context.Background()
