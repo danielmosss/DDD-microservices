@@ -7,12 +7,10 @@ import (
 	"monitoring/internal/db"
 	"monitoring/internal/domain/models"
 	"monitoring/server"
-
-	"github.com/google/uuid"
 )
 
 type ConfiguratieRepository interface {
-	GetBySensorID(ctx context.Context, sensorID uuid.UUID) (models.SensorConfiguratie, error)
+	GetBySensorID(ctx context.Context, sensorID int64) (models.SensorConfiguratie, error)
 }
 
 func AnalyzeIncommingSensorData(meting models.Meting) {
@@ -39,16 +37,21 @@ func NewAnalyseService(repo ConfiguratieRepository) *AnalyseService {
 
 func (s *AnalyseService) AnalyseerMeting(ctx context.Context, m models.Meting) error {
 	if m.SensorID == nil {
-		fmt.Println("Handmatige meting, sla automatische config-check over.")
-		return nil
+		return fmt.Errorf("sensor id is nil in meting: %v", m)
 	}
 
-	config, err := s.configRepo.GetBySensorID(ctx, *m.SensorID)
+	sensorID := *m.SensorID
+	config, err := s.configRepo.GetBySensorID(ctx, sensorID)
 	if err != nil {
-		return fmt.Errorf("kan bedrijfsregels niet ophalen voor sensor %s: %w", m.SensorID, err)
+		return fmt.Errorf("kan bedrijfsregels niet ophalen voor sensor %d: %w", sensorID, err)
 	}
 
 	if config.MaxValue != nil && m.Waarde > *config.MaxValue {
+		if config.MargePercentage == nil {
+			config.MargePercentage = new(float64)
+			*config.MargePercentage = 0
+		}
+
 		margeAbsoluut := (*config.MaxValue / 100.0) * *config.MargePercentage
 		grensWaarschuwing := *config.MaxValue + margeAbsoluut
 
@@ -63,18 +66,18 @@ func (s *AnalyseService) AnalyseerMeting(ctx context.Context, m models.Meting) e
 			IsWarning:     isWarning,
 		}
 
-		log.Printf("%s", afwijking)
+		log.Printf("Afwijking gedetecteerd: %+v", afwijking)
 
 		// TODO: Sla de afwijking op in de database
 		// TODO: Publiceer het AfwijkingGedetecteerd event naar NATS
 
 		if isWarning {
-			fmt.Printf("⚠️ WAARSCHUWING: Meting %.2f valt binnen de %v%% marge van norm %.2f\n", m.Waarde, *config.MargePercentage, *config.MaxValue)
+			log.Printf("⚠️ WAARSCHUWING: Meting %.2f valt binnen de %.2f%% marge van norm %.2f", m.Waarde, *config.MargePercentage, *config.MaxValue)
 		} else {
-			fmt.Printf("🚨 KRITIEK: Meting %.2f overschrijdt de marge van norm %.2f keihard!\n", m.Waarde, *config.MaxValue)
+			log.Printf("🚨 KRITIEK: Meting %.2f overschrijdt de marge van norm %.2f keihard!", m.Waarde, *config.MaxValue)
 		}
 	} else {
-		fmt.Printf("✅ Meting %.2f is helemaal in orde.\n", m.Waarde)
+		log.Printf("✅ Meting %.2f is helemaal in orde.", m.Waarde)
 	}
 
 	return nil

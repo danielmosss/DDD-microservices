@@ -49,19 +49,24 @@ func StartConsumingSensorData() {
 		ctx := context.Background()
 		meting, err := ingestService.VerwerkMeting(ctx, IncData)
 
-		//log for debug
-		log.Printf("KunstwerkID: %s\n", IncData.KunstwerkID)
-		log.Printf("SensorID: %s\n", IncData.SensorID)
-		log.Printf("Waarde: %s\n", IncData.Waarde)
-
-		analyse.AnalyzeIncommingSensorData(meting)
+		// log for debug (use correct verbs and handle nil SensorID)
+		log.Printf("KunstwerkID: %d", IncData.KunstwerkID)
+		if IncData.SensorID != nil {
+			log.Printf("SensorID: %d", *IncData.SensorID)
+		} else {
+			log.Printf("SensorID: <nil>")
+		}
+		log.Printf("Waarde: %.6f", IncData.Waarde)
 
 		if err != nil {
-			log.Printf("[SENSOR-CONSUMER] Fout bij verwerken van sensor data: %v\n", err)
+			log.Printf("[SENSOR-CONSUMER] Fout bij verwerken van sensor data: %v", err)
 			m.NakWithDelay(10 * time.Second)
 		} else {
+			// Only analyze if the meting was saved successfully
+			analyse.AnalyzeIncommingSensorData(meting)
+
 			m.Ack()
-			log.Printf("[SENSOR-CONSUMER] Sensor data netjes afgehandeld (Ack verzonden).\n")
+			log.Printf("[SENSOR-CONSUMER] Sensor data netjes afgehandeld (Ack verzonden).")
 		}
 	}, nats.Durable(durableName))
 

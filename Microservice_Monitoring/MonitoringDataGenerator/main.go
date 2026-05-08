@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"time"
 
 	_ "github.com/google/uuid"
@@ -33,17 +32,17 @@ func StartMessageBroker() {
 
 func StartGeneratingSensorDataAndPublishing() {
 	// Simuleer het genereren van sensor data en publiceer deze elke 5 seconden
-	ticker := time.NewTicker(10000 * time.Millisecond)
+	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			// Genereer een willekeurige meting (hier hardcoded voor demo)
+			// Genereer een willekeurige meting
 			meting := Meting{
-				SensorID:    "33333333-3333-3333-3333-333333333333",
-				KunstwerkID: "11111111-1111-1111-1111-111111111111",
-				Waarde:      rand.Float64() * 30,
+				SensorID:    1,
+				KunstwerkID: 1,
+				Waarde:      9,
 			}
 
 			// Publiceer de meting op NATS

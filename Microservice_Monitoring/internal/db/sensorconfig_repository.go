@@ -7,7 +7,6 @@ import (
 
 	"monitoring/internal/domain/models" // Pas aan naar jouw pad
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -21,7 +20,7 @@ func NewPostgresConfiguratieRepository(pool *pgxpool.Pool) *PostgresConfiguratie
 }
 
 // GetBySensorID haalt de specifieke bedrijfsregels voor één sensor op
-func (r *PostgresConfiguratieRepository) GetBySensorID(ctx context.Context, sensorID uuid.UUID) (models.SensorConfiguratie, error) {
+func (r *PostgresConfiguratieRepository) GetBySensorID(ctx context.Context, sensorID int64) (models.SensorConfiguratie, error) {
 	query := `
 		SELECT id, sensor_id, min_value, max_value, marge_percentage
 		FROM sensorconfiguratie
