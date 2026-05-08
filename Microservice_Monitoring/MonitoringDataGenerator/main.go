@@ -22,13 +22,8 @@ func main() {
 }
 
 func StartMessageBroker() {
-	// 1. Maak connectie met je NATS broker
-	natsConn, err := nats.Connect(nats.DefaultURL)
-	if err != nil {
-		log.Fatalf("Kan niet verbinden met NATS: %v", err)
-	}
+	natsConn, _ = nats.Connect(nats.DefaultURL)
 
-	// 2. Initialiseer de JetStream context
 	var jsErr error
 	NatsStream, jsErr = natsConn.JetStream()
 	if jsErr != nil {
