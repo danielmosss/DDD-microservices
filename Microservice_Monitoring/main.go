@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"monitoring/internal/interfaces/consumers"
 	"monitoring/server"
 
 	"github.com/joho/godotenv"
@@ -17,4 +18,5 @@ func main() {
 	}
 
 	server.StartDatabaseConnection()
+	consumers.StartConsumingSensorData()
 }
