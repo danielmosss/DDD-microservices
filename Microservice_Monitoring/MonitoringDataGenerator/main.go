@@ -23,15 +23,14 @@ func main() {
 
 func StartMessageBroker() {
 	// 1. Maak connectie met je NATS broker
-	nc, err := nats.Connect(nats.DefaultURL)
+	natsConn, err := nats.Connect(nats.DefaultURL)
 	if err != nil {
 		log.Fatalf("Kan niet verbinden met NATS: %v", err)
 	}
-	natsConn = nc
 
 	// 2. Initialiseer de JetStream context
 	var jsErr error
-	NatsStream, jsErr = nc.JetStream()
+	NatsStream, jsErr = natsConn.JetStream()
 	if jsErr != nil {
 		log.Fatalf("Kan JetStream niet initialiseren: %v", jsErr)
 	}
@@ -49,7 +48,7 @@ func StartGeneratingSensorDataAndPublishing() {
 			meting := Meting{
 				SensorID:    "33333333-33333333-3333-333333333333",
 				KunstwerkID: "11111111-1111-1111-1111-111111111111",
-				Waarde:      int(rand.Float64() * 30),
+				Waarde:      rand.Float64() * 30,
 			}
 
 			// Publiceer de meting op NATS
