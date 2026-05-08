@@ -3,13 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
-
 	"monitoring/internal/domain/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// PostgresMetingRepository is de concrete implementatie
 type PostgresMetingRepository struct {
 	pool *pgxpool.Pool
 }
@@ -22,18 +20,13 @@ func NewPostgresMetingRepository(pool *pgxpool.Pool) *PostgresMetingRepository {
 // Save slaat een meting op in de TimescaleDB hypertable
 func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting) error {
 	query := `
-		INSERT INTO meting (time, sensor_id, kunstwerk_id, waarde, is_afwijking, is_handmatig, inspectie_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO meting (time, sensor_id, kunstwerk_id, waarde, is_afwijking, is_handmatig, inspectie_id, afgehandeld)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, false)
 	`
-	// Let op: TimescaleDB genereert de (time, id) composiet PK voor ons.
-	_, err := r.pool.Exec(ctx, query,
-		m.Time,
-		m.SensorID,
-		m.KunstwerkID,
-		m.Waarde,
-		m.IsAfwijking,
-		m.IsHandmatig,
-		m.InspectieID,
+
+	err := r.pool.QueryRow(ctx, query,
+		m.Time, m.SensorID, m.KunstwerkID, m.Waarde,
+		m.IsAfwijking, m.IsHandmatig, m.InspectieID, m.Afgehandeld,
 	)
 
 	if err != nil {

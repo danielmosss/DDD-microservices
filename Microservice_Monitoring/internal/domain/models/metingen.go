@@ -6,6 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type IncMeting struct {
+	SensorID    string  `db:"sensor_id" json:"sensorId"`
+	KunstwerkID string  `db:"kunstwerk_id" json:"kunstwerkId"`
+	Waarde      float64 `db:"waarde" json:"waarde"`
+}
+
 type Meting struct {
 	Time        time.Time  `db:"time" json:"time"`
 	ID          int64      `db:"id" json:"id"`
@@ -15,6 +21,7 @@ type Meting struct {
 	IsAfwijking bool       `db:"is_afwijking" json:"isAfwijking"`
 	IsHandmatig bool       `db:"is_handmatig" json:"isHandmatig"`
 	InspectieID *int       `db:"inspectie_id" json:"inspectieId"`
+	Afgehandeld bool       `db:"afgehandeld" json:"afgehandeld"`
 }
 
 type Afwijking struct {

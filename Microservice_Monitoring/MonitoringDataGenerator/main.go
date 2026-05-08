@@ -33,7 +33,7 @@ func StartMessageBroker() {
 
 func StartGeneratingSensorDataAndPublishing() {
 	// Simuleer het genereren van sensor data en publiceer deze elke 5 seconden
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(10000 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
@@ -41,7 +41,7 @@ func StartGeneratingSensorDataAndPublishing() {
 		case <-ticker.C:
 			// Genereer een willekeurige meting (hier hardcoded voor demo)
 			meting := Meting{
-				SensorID:    "33333333-33333333-3333-333333333333",
+				SensorID:    "33333333-3333-3333-3333-333333333333",
 				KunstwerkID: "11111111-1111-1111-1111-111111111111",
 				Waarde:      rand.Float64() * 30,
 			}
