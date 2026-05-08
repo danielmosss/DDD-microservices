@@ -1,0 +1,3 @@
+ALTER TABLE afwijking
+DROP CONSTRAINT IF EXISTS fk_sensor,
+DROP COLUMN IF EXISTS sensor_id;

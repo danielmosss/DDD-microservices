@@ -1,0 +1,3 @@
+ALTER TABLE sensor DROP COLUMN IF EXISTS deleted;
+ALTER TABLE onderdelen DROP COLUMN IF EXISTS deleted;
+ALTER TABLE kunstwerktype DROP COLUMN IF EXISTS deleted;

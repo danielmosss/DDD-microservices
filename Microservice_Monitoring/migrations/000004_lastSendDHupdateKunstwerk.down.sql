@@ -1,0 +1,1 @@
+ALTER TABLE kunstwerk DROP COLUMN last_send_dh_update;
