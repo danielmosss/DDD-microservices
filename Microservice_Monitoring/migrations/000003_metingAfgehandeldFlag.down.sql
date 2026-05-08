@@ -1,0 +1,1 @@
+ALTER TABLE meting DROP COLUMN afgehandeld;
