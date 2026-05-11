@@ -1,1 +1,0 @@
-ALTER TABLE meting DROP COLUMN is_afwijking;

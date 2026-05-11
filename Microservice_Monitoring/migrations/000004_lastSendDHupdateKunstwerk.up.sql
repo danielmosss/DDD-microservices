@@ -1,1 +1,0 @@
-ALTER TABLE kunstwerk ADD last_send_dh_update TIMESTAMPTZ;
