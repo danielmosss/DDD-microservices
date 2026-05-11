@@ -13,7 +13,7 @@ type Kunstwerk struct {
 	BeheerIdentifier string    `db:"beheer_identifier" json:"beheerIdentifier"`
 	Naam             string    `db:"naam" json:"naam"`
 	Geolocation      *string   `db:"geolocation" json:"geolocation"`
-	KunstwerkTypeID  int       `db:"kunstwerktype_id" json:"kunstwerkTypeId"`
+	KunstwerkTypeID  *int64    `db:"kunstwerktype_id" json:"kunstwerkTypeId"`
 	Beschrijving     *string   `db:"beschrijving" json:"beschrijving"`
 	Deleted          bool      `db:"deleted" json:"deleted"`
 	LastSendDhUpdate time.Time `db:"last_send_dh_update" json:"lastsenddhupdate"`

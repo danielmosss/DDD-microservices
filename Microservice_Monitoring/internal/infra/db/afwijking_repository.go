@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"monitoring/internal/domain/models"
-
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -27,10 +25,10 @@ func (r *PostgresAfwijkingRepository) Save(ctx context.Context, m models.Afwijki
 
 	var (
 		outId            int64
-		outMetingId      string
+		outMetingId      int64
 		outMetingTime    sql.NullTime
 		outKunstwerkID   int64
-		outSensorID      int64
+		outSensorID      sql.NullInt64
 		outTime          sql.NullTime
 		outNormMinWaarde float64
 		outNormMaxWaarde sql.NullFloat64
@@ -47,14 +45,17 @@ func (r *PostgresAfwijkingRepository) Save(ctx context.Context, m models.Afwijki
 
 	saved := m
 	saved.ID = outId
-	if parsed, perr := uuid.Parse(outMetingId); perr == nil {
-		saved.MetingID = parsed
-	}
+	saved.MetingID = outMetingId
 	if outMetingTime.Valid {
 		saved.MetingTime = outMetingTime.Time
 	}
 	saved.KunstwerkID = outKunstwerkID
-	saved.SensorID = outSensorID
+	if outSensorID.Valid {
+		v := outSensorID.Int64
+		saved.SensorID = &v
+	} else {
+		saved.SensorID = nil
+	}
 	if outTime.Valid {
 		saved.Time = outTime.Time
 	}

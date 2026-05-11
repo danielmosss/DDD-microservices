@@ -75,11 +75,16 @@ func (s *AnalyseService) AnalyseerMeting(ctx context.Context, m models.Meting) e
 		outputStatus := CheckDempelWaarde(m.Waarde, config)
 		if outputStatus != StatusOke {
 			isWarning := outputStatus == StatusWarning
+			var sensorID *int64
+			if m.SensorID != nil {
+				sensorID = m.SensorID
+			}
 
 			afwijking := models.Afwijking{
 				MetingID:      m.ID,
 				MetingTime:    m.Time,
 				KunstwerkID:   m.KunstwerkID,
+				SensorID:      sensorID,
 				Time:          time.Now(),
 				NormMinWaarde: *config.MinValue,
 				NormMaxWaarde: 0,
@@ -98,11 +103,16 @@ func (s *AnalyseService) AnalyseerMeting(ctx context.Context, m models.Meting) e
 		outputStatus := CheckDrempelRange(m.Waarde, config)
 		if outputStatus != StatusOke {
 			isWarning := outputStatus == StatusWarning
+			var sensorID *int64
+			if m.SensorID != nil {
+				sensorID = m.SensorID
+			}
 
 			afwijking := models.Afwijking{
 				MetingID:      m.ID,
 				MetingTime:    m.Time,
 				KunstwerkID:   m.KunstwerkID,
+				SensorID:      sensorID,
 				Time:          time.Now(),
 				NormMinWaarde: *config.MinValue,
 				NormMaxWaarde: *config.MaxValue,

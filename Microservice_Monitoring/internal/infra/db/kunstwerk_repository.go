@@ -24,7 +24,7 @@ func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, k
 			k.beheeridentifier,
 			k.naam,
 			k.geolocation,
-			COALESCE(k.kunstwerktype_id, 0),
+			k.kunstwerktype_id,
 			k.beschrijving,
 			k.deleted,
 			COALESCE(kt.id, 0),
@@ -37,6 +37,7 @@ func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, k
 
 	var result models.KunstwerkDetail
 	var kunstwerkGeolocation sql.NullString
+	var kunstwerkTypeID sql.NullInt64
 	var kunstwerkBeschrijving sql.NullString
 	var kunstwerkTypeBeschrijving sql.NullString
 
@@ -46,7 +47,7 @@ func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, k
 		&result.Kunstwerk.BeheerIdentifier,
 		&result.Kunstwerk.Naam,
 		&kunstwerkGeolocation,
-		&result.Kunstwerk.KunstwerkTypeID,
+		&kunstwerkTypeID,
 		&kunstwerkBeschrijving,
 		&result.Kunstwerk.Deleted,
 		// En hier map je de kolommen van de gejoinde tabel:
@@ -61,6 +62,9 @@ func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, k
 
 	if kunstwerkGeolocation.Valid {
 		result.Kunstwerk.Geolocation = &kunstwerkGeolocation.String
+	}
+	if kunstwerkTypeID.Valid {
+		result.Kunstwerk.KunstwerkTypeID = &kunstwerkTypeID.Int64
 	}
 	if kunstwerkBeschrijving.Valid {
 		result.Kunstwerk.Beschrijving = &kunstwerkBeschrijving.String

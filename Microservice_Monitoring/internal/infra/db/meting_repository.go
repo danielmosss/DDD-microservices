@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"monitoring/internal/domain/models"
-
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -29,7 +27,7 @@ func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting) (m
 
 	var (
 		outTime        sql.NullTime
-		outID          string
+		outID          int64
 		outSensorID    sql.NullInt64
 		outKunstwerkID int64
 		outWaarde      float64
@@ -50,9 +48,7 @@ func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting) (m
 	if outTime.Valid {
 		saved.Time = outTime.Time
 	}
-	if parsed, perr := uuid.Parse(outID); perr == nil {
-		saved.ID = parsed
-	}
+	saved.ID = outID
 	if outSensorID.Valid {
 		v := outSensorID.Int64
 		saved.SensorID = &v

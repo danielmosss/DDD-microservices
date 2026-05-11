@@ -42,7 +42,7 @@ func (r *PostgresConfiguratieRepository) GetBySensorID(ctx context.Context, sens
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Specifieke error zodat je Analyse Service weet dat hij default gedrag moet vertonen
-			return models.SensorConfiguratie{}, fmt.Errorf("geen configuratie gevonden voor sensor %s", sensorID)
+			return models.SensorConfiguratie{}, fmt.Errorf("geen configuratie gevonden voor sensor %d", sensorID)
 		}
 		// Een andere database fout (bijv. verbinding weg)
 		return models.SensorConfiguratie{}, fmt.Errorf("fout bij ophalen configuratie: %w", err)
