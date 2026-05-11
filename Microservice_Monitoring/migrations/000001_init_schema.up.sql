@@ -37,7 +37,7 @@ CREATE TABLE sensor (
     onderdeel_id BIGINT REFERENCES onderdelen(id),
     geolocation VARCHAR(255),
     sensortype_id INT REFERENCES sensortype(id) NOT NULL,
-    last_analyzed_meting_id BIGINT REFERENCES meting(id) DEFAULT NULL,
+    last_analyzed_meting_id BIGINT DEFAULT NULL,
     deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -50,21 +50,23 @@ CREATE TABLE sensorconfiguratie (
 );
 
 CREATE TABLE meting (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL NOT NULL,
     time TIMESTAMPTZ NOT NULL,
     sensor_id BIGINT REFERENCES sensor(id),
     kunstwerk_id BIGINT REFERENCES kunstwerk(id) NOT NULL,
     waarde FLOAT NOT NULL,
     is_handmatig BOOLEAN NOT NULL DEFAULT FALSE,
     inspectie_id VARCHAR(255)
-    INDEX id_SensorId_idx (id, sensor_id) 
 );
 
 SELECT create_hypertable('meting', 'time');
+CREATE INDEX idx_meting_id ON meting(id);
+CREATE INDEX idx_meting_time ON meting(time DESC);
+CREATE INDEX idx_meting_sensor_id_id ON meting(sensor_id, id);
 
 CREATE TABLE afwijking (
     id BIGSERIAL PRIMARY KEY,
-    meting_id BIGINT REFERENCES meting(id) NOT NULL,
+    meting_id BIGINT NOT NULL,
     meting_time TIMESTAMPTZ NOT NULL,
     kunstwerk_id BIGINT REFERENCES kunstwerk(id) NOT NULL,
     sensor_id BIGINT REFERENCES sensor(id),
@@ -73,6 +75,17 @@ CREATE TABLE afwijking (
     norm_max_waarde FLOAT,
     norm_marge_percentage FLOAT,
     gemeten_waarde FLOAT NOT NULL,
-    is_warning BOOLEAN NOT NULL,
-    FOREIGN KEY (meting_time, meting_id) REFERENCES meting(time, id)
+    is_warning BOOLEAN NOT NULL
 );
+
+CREATE TABLE procedure_error_log (
+    id BIGSERIAL PRIMARY KEY,
+    logged_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    procedure_name VARCHAR(255) NOT NULL,
+    sensor_id BIGINT REFERENCES sensor(id),
+    error_message TEXT NOT NULL,
+    error_context JSONB
+);
+
+CREATE INDEX idx_error_log_procedure ON procedure_error_log(procedure_name);
+CREATE INDEX idx_error_log_sensor ON procedure_error_log(sensor_id);

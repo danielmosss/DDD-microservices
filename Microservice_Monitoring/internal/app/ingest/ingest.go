@@ -9,7 +9,7 @@ import (
 )
 
 type MetingRepository interface {
-	Save(ctx context.Context, m models.Meting) (models.Meting, error)
+	Save(ctx context.Context, m models.Meting, returnObject bool) (models.Meting, error)
 }
 
 type IngestService struct {
@@ -29,7 +29,7 @@ func (s *IngestService) VerwerkMeting(ctx context.Context, inc models.IncMeting)
 		IsHandmatig: false,
 	}
 
-	saved, err := s.repo.Save(ctx, meting)
+	saved, err := s.repo.Save(ctx, meting, false)
 	if err != nil {
 		return models.Meting{}, fmt.Errorf("repo save faalde: %w", err)
 	}

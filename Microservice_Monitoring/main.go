@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"monitoring/internal/app/analyse"
+	"monitoring/internal/infra/db"
 	"monitoring/internal/infra/messaging"
 	"monitoring/internal/interfaces/consumers"
 	"monitoring/server"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -20,7 +24,11 @@ func main() {
 
 	server.StartDatabaseConnection()
 
-	messaging.StartDailyHealthSummery()
+	go messaging.StartDailyHealthSummery()
+
+	analysisRepo := db.NewAnalysisProcedureRepository(server.GetDBPool())
+	analysisScheduler := analyse.NewAnalysisScheduler(analysisRepo, time.Minute)
+	analysisScheduler.Start(context.Background())
 
 	// Needs to be the last because i put that quit stuff in there
 	consumers.StartConsumingSensorData()

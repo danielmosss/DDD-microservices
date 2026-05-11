@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"monitoring/internal/app/analyse"
 	"monitoring/internal/app/ingest"
 	"monitoring/internal/domain/models"
 	"monitoring/internal/infra/db"
@@ -47,7 +46,7 @@ func StartConsumingSensorData() {
 		}
 
 		ctx := context.Background()
-		meting, err := ingestService.VerwerkMeting(ctx, IncData)
+		_, err := ingestService.VerwerkMeting(ctx, IncData)
 
 		// log for debug (use correct verbs and handle nil SensorID)
 		log.Printf("KunstwerkID: %d", IncData.KunstwerkID)
@@ -62,14 +61,6 @@ func StartConsumingSensorData() {
 			log.Printf("[SENSOR-CONSUMER] Fout bij verwerken van sensor data: %v", err)
 			m.NakWithDelay(10 * time.Second)
 		} else {
-			// Only analyze if the meting was saved successfully
-			err := analyse.AnalyzeIncommingSensorData(meting)
-
-			if err != nil {
-				log.Printf("[SENSOR-CONSUMER] Fout bij analyseren van sensor data: %v", err)
-				m.NakWithDelay(10 * time.Second)
-				return
-			}
 			m.Ack()
 			log.Printf("[SENSOR-CONSUMER] Sensor data netjes afgehandeld (Ack verzonden).")
 		}

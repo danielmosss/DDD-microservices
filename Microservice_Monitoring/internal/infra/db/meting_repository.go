@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"monitoring/internal/domain/models"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,11 +19,11 @@ func NewPostgresMetingRepository(pool *pgxpool.Pool) *PostgresMetingRepository {
 }
 
 // Save slaat een meting op in de TimescaleDB hypertable en retourneert het volledige opgeslagen record
-func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting) (models.Meting, error) {
+func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting, returnObject bool) (models.Meting, error) {
 	query := `
-		INSERT INTO meting (time, sensor_id, kunstwerk_id, waarde, is_handmatig, inspectie_id, afgehandeld)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING time, id, sensor_id, kunstwerk_id, waarde, is_handmatig, inspectie_id, afgehandeld
+		INSERT INTO meting (time, sensor_id, kunstwerk_id, waarde, is_handmatig, inspectie_id)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING time, id, sensor_id, kunstwerk_id, waarde, is_handmatig, inspectie_id
 	`
 
 	var (
@@ -33,15 +34,18 @@ func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting) (m
 		outWaarde      float64
 		outIsHandmatig bool
 		outInspectieID sql.NullString
-		outAfgehandeld bool
 	)
 
 	err := r.pool.QueryRow(ctx, query,
-		m.Time, m.SensorID, m.KunstwerkID, m.Waarde, m.IsHandmatig, m.InspectieID, m.Afgehandeld,
-	).Scan(&outTime, &outID, &outSensorID, &outKunstwerkID, &outWaarde, &outIsHandmatig, &outInspectieID, &outAfgehandeld)
+		m.Time, m.SensorID, m.KunstwerkID, m.Waarde, m.IsHandmatig, m.InspectieID,
+	).Scan(&outTime, &outID, &outSensorID, &outKunstwerkID, &outWaarde, &outIsHandmatig, &outInspectieID)
 
 	if err != nil {
 		return models.Meting{}, fmt.Errorf("fout bij opslaan meting: %w", err)
+	}
+
+	if !returnObject {
+		return models.Meting{}, nil
 	}
 
 	saved := m
@@ -64,7 +68,6 @@ func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting) (m
 	} else {
 		saved.InspectieID = nil
 	}
-	saved.Afgehandeld = outAfgehandeld
 
 	return saved, nil
 }
