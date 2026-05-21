@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"monitoring/internal/app/analyse"
+	"monitoring/internal/app/restapi"
 	"monitoring/internal/infra/db"
 	"monitoring/internal/infra/messaging"
 	"monitoring/internal/interfaces/consumers"
@@ -29,6 +30,8 @@ func main() {
 	analysisRepo := db.NewAnalysisProcedureRepository(server.GetDBPool())
 	analysisScheduler := analyse.NewAnalysisScheduler(analysisRepo, time.Minute)
 	analysisScheduler.Start(context.Background())
+
+	restapi.StartRestAPI()
 
 	// Needs to be the last because i put that quit stuff in there
 	consumers.StartConsumingSensorData()

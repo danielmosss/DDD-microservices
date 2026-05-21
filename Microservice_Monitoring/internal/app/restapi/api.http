@@ -1,0 +1,14 @@
+### Monitoring API Testbestand
+# Dit bestand werkt direct in VS Code (met de "REST Client" extensie) of JetBrains IDEs.
+
+@host = http://localhost:8080
+
+### 1. Test V1 Status Endpoint
+GET {{host}}/api/v1/status
+Accept: application/json
+
+###
+
+### 2. Test V2 Status Endpoint
+GET {{host}}/api/v2/status
+Accept: application/json
