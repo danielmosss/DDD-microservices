@@ -55,7 +55,7 @@ func GetMetingen(c *gin.Context) {
 	}
 
 	repo := db.NewPostgresMetingRepository(server.GetDBPool())
-	metingen, total, err := repo.GetByKunstwerkID(c.Request.Context(), id, pagination.Limit, pagination.Offset)
+	metingen, total, err := repo.GetMetingenByKunstwerkID(c.Request.Context(), id, pagination.Limit, pagination.Offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -91,7 +91,7 @@ func GetMetingenRecent(c *gin.Context) {
 	}
 
 	repo := db.NewPostgresMetingRepository(server.GetDBPool())
-	metingen, err := repo.GetRecentPerSensorByKunstwerkID(c.Request.Context(), id)
+	metingen, err := repo.GetRecentMetingPerSensorByKunstwerkID(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -126,7 +126,7 @@ func GetAfwijkingen(c *gin.Context) {
 	}
 
 	repo := db.NewPostgresAfwijkingRepository(server.GetDBPool())
-	afwijkingen, total, err := repo.GetByKunstwerkID(c.Request.Context(), id, pagination.Limit, pagination.Offset)
+	afwijkingen, total, err := repo.GetAfwijkingByKunstwerkID(c.Request.Context(), id, pagination.Limit, pagination.Offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
