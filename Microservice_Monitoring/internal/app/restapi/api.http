@@ -12,3 +12,52 @@ Accept: application/json
 ### 2. Test V2 Status Endpoint
 GET {{host}}/api/v2/status
 Accept: application/json
+
+###
+
+### 3. List kunstwerken (lookup)
+GET {{host}}/api/v1/kunstwerken
+Accept: application/json
+
+###
+
+### 4. Get sensoren for a kunstwerk (lookup)
+GET {{host}}/api/v1/kunstwerken/1/sensoren
+Accept: application/json
+
+###
+
+### 5. Get all metingen for a kunstwerk
+GET {{host}}/api/v1/metingen/1
+Accept: application/json
+
+###
+
+### 6. Get most recent meting per sensor for a kunstwerk
+GET {{host}}/api/v1/metingen/1/recent
+Accept: application/json
+
+###
+
+### 7. Get all afwijkingen for a kunstwerk
+GET {{host}}/api/v1/afwijkingen/1
+Accept: application/json
+
+###
+
+### 8. Create a manual meting (inspecteur)
+POST {{host}}/api/v1/meting
+Content-Type: application/json
+Accept: application/json
+
+{
+  "sensorId": 1,
+  "kunstwerkId": 1,
+  "waarde": 12.34
+}
+
+###
+
+### Notes
+# - Pas `sensorId` en `kunstwerkId` aan naar bestaande testwaarden in je DB.
+# - Gebruik de VS Code REST Client of `curl` om de requests te verzenden.
