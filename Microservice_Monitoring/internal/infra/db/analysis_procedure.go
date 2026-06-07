@@ -8,12 +8,12 @@ import (
 )
 
 type AnalysisResult struct {
-	SensorID           int64
-	KunstwerkID        int64
-	MetingenProcessed  int64
+	SensorID            int64
+	KunstwerkID         int64
+	MetingenProcessed   int64
 	AfwijkingenDetected int64
-	LastMetingID       int64
-	Status             string
+	LastMetingID        int64
+	Status              string
 }
 
 type AnalysisProcedureRepository struct {
@@ -87,12 +87,12 @@ func (r *AnalysisProcedureRepository) GetErrorLog(ctx context.Context, limit int
 		}
 
 		logs = append(logs, map[string]interface{}{
-			"id":              id,
-			"logged_at":       loggedAt,
-			"procedure_name":  procName,
-			"sensor_id":       sensorID,
-			"error_message":   errorMsg,
-			"error_context":   errorContext,
+			"id":             id,
+			"logged_at":      loggedAt,
+			"procedure_name": procName,
+			"sensor_id":      sensorID,
+			"error_message":  errorMsg,
+			"error_context":  errorContext,
 		})
 	}
 
