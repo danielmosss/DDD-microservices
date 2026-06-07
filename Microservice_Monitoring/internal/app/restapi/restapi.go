@@ -19,6 +19,12 @@ func StartRestAPI() string {
 		v1Router := api.Group("/v1")
 		{
 			v1Router.GET("/status", v1.GetStatus)
+			v1Router.GET("/metingen/:kunstwerkId", v1.GetMetingen)
+			v1Router.GET("/metingen/:kunstwerkId/recent", v1.GetMetingenRecent)
+			v1Router.GET("/afwijkingen/:kunstwerkId", v1.GetAfwijkingen)
+			v1Router.POST("/meting", v1.PostMeting)
+			v1Router.GET("/kunstwerken", v1.GetKunstwerken)
+			v1Router.GET("/kunstwerken/:kunstwerkId/sensoren", v1.GetSensorenByKunstwerk)
 		}
 
 		v2Router := api.Group("/v2")

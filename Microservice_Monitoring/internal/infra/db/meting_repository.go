@@ -18,6 +18,150 @@ func NewPostgresMetingRepository(pool *pgxpool.Pool) *PostgresMetingRepository {
 	return &PostgresMetingRepository{pool: pool}
 }
 
+func (r *PostgresMetingRepository) GetMetingenByKunstwerkID(ctx context.Context, kunstwerkID int64, limit int, offset int) ([]models.Meting, int64, error) {
+	query := `
+		SELECT time, id, sensor_id, kunstwerk_id, waarde, is_handmatig, inspectie_id
+		FROM meting
+		WHERE kunstwerk_id = $1
+		ORDER BY time DESC, id DESC
+		LIMIT $2
+		OFFSET $3
+	`
+
+	rows, err := r.pool.Query(ctx, query, kunstwerkID, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("fout bij ophalen metingen: %w", err)
+	}
+	defer rows.Close()
+
+	metingen := make([]models.Meting, 0)
+	for rows.Next() {
+		var (
+			item           models.Meting
+			outTime        sql.NullTime
+			outSensorID    sql.NullInt64
+			outInspectieID sql.NullString
+		)
+
+		if err := rows.Scan(
+			&outTime,
+			&item.ID,
+			&outSensorID,
+			&item.KunstwerkID,
+			&item.Waarde,
+			&item.IsHandmatig,
+			&outInspectieID,
+		); err != nil {
+			return nil, 0, fmt.Errorf("fout bij lezen meting: %w", err)
+		}
+
+		if outTime.Valid {
+			item.Time = outTime.Time
+		}
+		if outSensorID.Valid {
+			value := outSensorID.Int64
+			item.SensorID = &value
+		} else {
+			item.SensorID = nil
+		}
+		if outInspectieID.Valid {
+			value := outInspectieID.String
+			item.InspectieID = &value
+		} else {
+			item.InspectieID = nil
+		}
+
+		metingen = append(metingen, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("fout bij itereren metingen: %w", err)
+	}
+
+	total, err := r.countByKunstwerkID(ctx, kunstwerkID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return metingen, total, nil
+}
+
+func (r *PostgresMetingRepository) countMetingenByKunstwerkID(ctx context.Context, kunstwerkID int64) (int64, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM meting
+		WHERE kunstwerk_id = $1
+	`
+
+	var total int64
+	if err := r.pool.QueryRow(ctx, query, kunstwerkID).Scan(&total); err != nil {
+		return 0, fmt.Errorf("fout bij tellen metingen: %w", err)
+	}
+
+	return total, nil
+}
+
+func (r *PostgresMetingRepository) GetRecentMetingPerSensorByKunstwerkID(ctx context.Context, kunstwerkID int64) ([]models.Meting, error) {
+	query := `
+		SELECT DISTINCT ON (sensor_id) time, id, sensor_id, kunstwerk_id, waarde, is_handmatig, inspectie_id
+		FROM meting
+		WHERE kunstwerk_id = $1 AND sensor_id IS NOT NULL
+		ORDER BY sensor_id, time DESC, id DESC
+	`
+
+	rows, err := r.pool.Query(ctx, query, kunstwerkID)
+	if err != nil {
+		return nil, fmt.Errorf("fout bij ophalen recente metingen: %w", err)
+	}
+	defer rows.Close()
+
+	metingen := make([]models.Meting, 0)
+	for rows.Next() {
+		var (
+			item           models.Meting
+			outTime        sql.NullTime
+			outSensorID    sql.NullInt64
+			outInspectieID sql.NullString
+		)
+
+		if err := rows.Scan(
+			&outTime,
+			&item.ID,
+			&outSensorID,
+			&item.KunstwerkID,
+			&item.Waarde,
+			&item.IsHandmatig,
+			&outInspectieID,
+		); err != nil {
+			return nil, fmt.Errorf("fout bij lezen recente meting: %w", err)
+		}
+
+		if outTime.Valid {
+			item.Time = outTime.Time
+		}
+		if outSensorID.Valid {
+			value := outSensorID.Int64
+			item.SensorID = &value
+		} else {
+			item.SensorID = nil
+		}
+		if outInspectieID.Valid {
+			value := outInspectieID.String
+			item.InspectieID = &value
+		} else {
+			item.InspectieID = nil
+		}
+
+		metingen = append(metingen, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("fout bij itereren recente metingen: %w", err)
+	}
+
+	return metingen, nil
+}
+
 // Save slaat een meting op in de TimescaleDB hypertable en retourneert het volledige opgeslagen record
 func (r *PostgresMetingRepository) Save(ctx context.Context, m models.Meting, returnObject bool) (models.Meting, error) {
 	query := `

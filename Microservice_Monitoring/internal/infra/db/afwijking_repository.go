@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"monitoring/internal/domain/models"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,6 +15,101 @@ type PostgresAfwijkingRepository struct {
 
 func NewPostgresAfwijkingRepository(pool *pgxpool.Pool) *PostgresAfwijkingRepository {
 	return &PostgresAfwijkingRepository{pool: pool}
+}
+
+func (r *PostgresAfwijkingRepository) GetAfwijkingByKunstwerkID(ctx context.Context, kunstwerkID int64, limit int, offset int) ([]models.Afwijking, int64, error) {
+	query := `
+		SELECT id, meting_id, meting_time, kunstwerk_id, sensor_id, time, norm_min_waarde, norm_max_waarde, norm_marge_percentage, gemeten_waarde, is_warning
+		FROM afwijking
+		WHERE kunstwerk_id = $1
+		ORDER BY time DESC, id DESC
+		LIMIT $2
+		OFFSET $3
+	`
+
+	rows, err := r.pool.Query(ctx, query, kunstwerkID, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("fout bij ophalen afwijkingen: %w", err)
+	}
+	defer rows.Close()
+
+	afwijkingen := make([]models.Afwijking, 0)
+	for rows.Next() {
+		var (
+			item                   models.Afwijking
+			outMetingTime          sql.NullTime
+			outSensorID            sql.NullInt64
+			outTime                sql.NullTime
+			outNormMaxWaarde       sql.NullFloat64
+			outNormMargePercentage sql.NullFloat64
+		)
+
+		if err := rows.Scan(
+			&item.ID,
+			&item.MetingID,
+			&outMetingTime,
+			&item.KunstwerkID,
+			&outSensorID,
+			&outTime,
+			&item.NormMinWaarde,
+			&outNormMaxWaarde,
+			&outNormMargePercentage,
+			&item.GemetenWaarde,
+			&item.IsWarning,
+		); err != nil {
+			return nil, 0, fmt.Errorf("fout bij lezen afwijking: %w", err)
+		}
+
+		if outMetingTime.Valid {
+			item.MetingTime = outMetingTime.Time
+		}
+		if outSensorID.Valid {
+			value := outSensorID.Int64
+			item.SensorID = &value
+		} else {
+			item.SensorID = nil
+		}
+		if outTime.Valid {
+			item.Time = outTime.Time
+		}
+		if outNormMaxWaarde.Valid {
+			item.NormMaxWaarde = outNormMaxWaarde.Float64
+		}
+		if outNormMargePercentage.Valid {
+			value := outNormMargePercentage.Float64
+			item.NormMargePercentage = &value
+		} else {
+			item.NormMargePercentage = nil
+		}
+
+		afwijkingen = append(afwijkingen, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("fout bij itereren afwijkingen: %w", err)
+	}
+
+	total, err := r.countByKunstwerkID(ctx, kunstwerkID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return afwijkingen, total, nil
+}
+
+func (r *PostgresAfwijkingRepository) countAfwijkingenByKunstwerkID(ctx context.Context, kunstwerkID int64) (int64, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM afwijking
+		WHERE kunstwerk_id = $1
+	`
+
+	var total int64
+	if err := r.pool.QueryRow(ctx, query, kunstwerkID).Scan(&total); err != nil {
+		return 0, fmt.Errorf("fout bij tellen afwijkingen: %w", err)
+	}
+
+	return total, nil
 }
 
 func (r *PostgresAfwijkingRepository) Save(ctx context.Context, m models.Afwijking) (models.Afwijking, error) {

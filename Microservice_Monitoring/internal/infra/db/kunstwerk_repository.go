@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"monitoring/internal/domain/models" // Pas aan naar jouw pad
 	"time"
 
@@ -15,6 +16,126 @@ type PostgresKunstwerkRepository struct {
 
 func NewPostgresKunstwerkRepository(pool *pgxpool.Pool) *PostgresKunstwerkRepository {
 	return &PostgresKunstwerkRepository{pool: pool}
+}
+
+func (r *PostgresKunstwerkRepository) GetActieveKunstwerken(ctx context.Context) ([]models.Kunstwerk, error) {
+	query := `
+		SELECT id, beheeridentifier, naam, geolocation, kunstwerktype_id, beschrijving, deleted, last_send_dh_update
+		FROM kunstwerk
+		WHERE deleted = false
+		ORDER BY naam ASC, id ASC
+	`
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("fout bij ophalen kunstwerken: %w", err)
+	}
+	defer rows.Close()
+
+	kunstwerken := make([]models.Kunstwerk, 0)
+	for rows.Next() {
+		var (
+			item                  models.Kunstwerk
+			kunstwerkGeolocation  sql.NullString
+			kunstwerkTypeID       sql.NullInt64
+			kunstwerkBeschrijving sql.NullString
+			lastSendDhUpdate      sql.NullTime
+		)
+
+		if err := rows.Scan(
+			&item.ID,
+			&item.BeheerIdentifier,
+			&item.Naam,
+			&kunstwerkGeolocation,
+			&kunstwerkTypeID,
+			&kunstwerkBeschrijving,
+			&item.Deleted,
+			&lastSendDhUpdate,
+		); err != nil {
+			return nil, fmt.Errorf("fout bij lezen kunstwerk: %w", err)
+		}
+
+		if kunstwerkGeolocation.Valid {
+			value := kunstwerkGeolocation.String
+			item.Geolocation = &value
+		}
+		if kunstwerkTypeID.Valid {
+			value := kunstwerkTypeID.Int64
+			item.KunstwerkTypeID = &value
+		}
+		if kunstwerkBeschrijving.Valid {
+			value := kunstwerkBeschrijving.String
+			item.Beschrijving = &value
+		}
+		if lastSendDhUpdate.Valid {
+			item.LastSendDhUpdate = lastSendDhUpdate.Time
+		}
+
+		kunstwerken = append(kunstwerken, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("fout bij itereren kunstwerken: %w", err)
+	}
+
+	return kunstwerken, nil
+}
+
+func (r *PostgresKunstwerkRepository) GetSensorenByKunstwerkID(ctx context.Context, kunstwerkID int64) ([]models.Sensor, error) {
+	query := `
+		SELECT id, kunstwerk_id, onderdeel_id, geolocation, sensortype_id, last_analyzed_meting_id
+		FROM sensor
+		WHERE kunstwerk_id = $1 AND deleted = false
+		ORDER BY id ASC
+	`
+
+	rows, err := r.pool.Query(ctx, query, kunstwerkID)
+	if err != nil {
+		return nil, fmt.Errorf("fout bij ophalen sensoren: %w", err)
+	}
+	defer rows.Close()
+
+	sensoren := make([]models.Sensor, 0)
+	for rows.Next() {
+		var (
+			item                 models.Sensor
+			onderdeelID          sql.NullInt64
+			geolocation          sql.NullString
+			lastAnalyzedMetingID sql.NullInt64
+		)
+
+		if err := rows.Scan(
+			&item.ID,
+			&item.KunstwerkID,
+			&onderdeelID,
+			&geolocation,
+			&item.SensorTypeID,
+			&lastAnalyzedMetingID,
+		); err != nil {
+			return nil, fmt.Errorf("fout bij lezen sensor: %w", err)
+		}
+
+		if onderdeelID.Valid {
+			value := onderdeelID.Int64
+			item.OnderdeelID = &value
+		}
+		if geolocation.Valid {
+			value := geolocation.String
+			item.Geolocation = &value
+		}
+		if lastAnalyzedMetingID.Valid {
+			value := lastAnalyzedMetingID.Int64
+			item.LastAnalyzedMetingID = &value
+		}
+
+		sensoren = append(sensoren, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("fout bij itereren sensoren: %w", err)
+	}
+
+	return sensoren, nil
 }
 
 func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, kunstwerkID int64) (models.KunstwerkDetail, error) {
