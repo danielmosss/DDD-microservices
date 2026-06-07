@@ -28,6 +28,8 @@ func GetStatus(c *gin.Context) {
 }
 
 // GetMetingen
+// @Summary All metingen for one kunstwerk
+// @Description Return all metingen for given kunstwerkid
 // @Tags Metingen
 // @Accept json
 // @Produce json
@@ -70,6 +72,8 @@ func GetMetingen(c *gin.Context) {
 }
 
 // GetMetingenRecent
+// @Summary Get most recent measurement per sensor for a kunstwerk
+// @Description Returns the most recent meting per sensor for the specified kunstwerk
 // @Tags Metingen
 // @Accept json
 // @Produce json
@@ -97,6 +101,8 @@ func GetMetingenRecent(c *gin.Context) {
 }
 
 // GetAfwijkingen
+// @Summary Get all afwijkingen for a kunstwerk
+// @Description Returns all afwijkingen for the specified kunstwerk
 // @Tags Afwijkingen
 // @Accept json
 // @Produce json
@@ -137,6 +143,8 @@ func GetAfwijkingen(c *gin.Context) {
 }
 
 // PostMeting
+// @Summary Create a manual meting (inspecteur)
+// @Description Create a manual meting for a sensor. SensorId is required.
 // @Tags Metingen
 // @Accept json
 // @Produce json
@@ -177,6 +185,8 @@ func PostMeting(c *gin.Context) {
 }
 
 // GetKunstwerken
+// @Summary List active kunstwerken
+// @Description Returns a list of active kunstwerken
 // @Tags Kunstwerken
 // @Accept json
 // @Produce json
@@ -194,6 +204,8 @@ func GetKunstwerken(c *gin.Context) {
 }
 
 // GetSensorenByKunstwerk
+// @Summary List sensoren for a kunstwerk
+// @Description Returns sensors for the specified kunstwerk
 // @Tags Sensoren
 // @Accept json
 // @Produce json
