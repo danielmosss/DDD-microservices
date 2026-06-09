@@ -2,7 +2,7 @@ $container = 'timescaledb'
 $dbUser = 'user'
 $dbName = 'monitoring'
 ## Prefer local script in `scripts/` if present, otherwise use container-mounted `/migrations/`
-$hostSql = Join-Path (Resolve-Path ..\) 'scripts\testdata.sql'
+$hostSql = Join-Path (Resolve-Path ..\) 'Microservice_Monitoring\scripts\testdata.sql'
 $containerSql = '/migrations/testdata.sql'
 
 Write-Host "Running test scenarios SQL in container '$container'..."
@@ -41,9 +41,13 @@ GROUP BY sensor_id
 ORDER BY sensor_id;
 "@
 
+
 Write-Host "Collecting results..." -ForegroundColor Cyan
 $result = docker compose exec -T $container psql -U $dbUser -d $dbName -t -A -F"," -c $query
 if ($LASTEXITCODE -ne 0) { Write-Error "Failed to query DB."; exit 2 }
+
+Write-Host "Cleaning created test rows..." -ForegroundColor Magenta
+docker compose exec -T $container psql -U $dbUser -d $dbName -c "$cleanup"
 
 # Parse results into map
 $map = @{}
