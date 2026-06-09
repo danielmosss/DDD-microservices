@@ -1,21 +1,28 @@
 definitions:
+  frontend.BulkSensorDataRequest:
+    properties:
+      sensorIds:
+        items:
+          type: integer
+        type: array
+    type: object
   models.Afwijking:
     properties:
-      gemetenWaarde:
+      gemeten_waarde:
         type: number
       id:
         type: integer
-      isWarning:
+      is_warning:
         type: boolean
       kunstwerkId:
         type: integer
       metingId:
         type: integer
-      normMargePercentage:
+      norm_marge_percentage:
         type: number
-      normMaxWaarde:
+      norm_max_waarde:
         type: number
-      normMinWaarde:
+      norm_min_waarde:
         type: number
       sensorId:
         type: integer
@@ -63,7 +70,7 @@ definitions:
         $ref: '#/definitions/models.KunstwerkDetail'
       losseSensoren:
         items:
-          $ref: '#/definitions/models.TreeSensor'
+          type: integer
         type: array
       onderdelen:
         items:
@@ -104,28 +111,66 @@ definitions:
         type: integer
       kunstwerkId:
         type: integer
-      lastAnalyzedMetingId:
+      last_analyzed_meting_id:
         type: integer
       onderdeelId:
         type: integer
       sensorConfiguratie:
         $ref: '#/definitions/models.SensorConfiguratie'
-      sensorTypeId:
+      sensortype_id:
         type: integer
     type: object
   models.SensorConfiguratie:
     properties:
       id:
         type: integer
-      margePercentage:
+      marge_percentage:
         type: number
-      maxValue:
+      max_value:
         type: number
-      minValue:
+      min_value:
         type: number
-      sensorId:
+      sensor_id:
         type: integer
     type: object
+  models.SensorDetailResponse:
+    properties:
+      afwijking:
+        $ref: '#/definitions/models.Afwijking'
+      id:
+        type: integer
+      laatsteMeting:
+        $ref: '#/definitions/models.Meting'
+      sensorConfiguratie:
+        $ref: '#/definitions/models.SensorConfiguratie'
+      sensorType:
+        $ref: '#/definitions/models.SensorType'
+      status:
+        $ref: '#/definitions/models.Status'
+    type: object
+  models.SensorType:
+    properties:
+      drempel_is_range:
+        type: boolean
+      eenheid:
+        type: string
+      id:
+        type: integer
+      naam:
+        type: string
+    type: object
+  models.Status:
+    enum:
+    - healthy
+    - warning
+    - critical
+    - offline
+    type: string
+    x-enum-varnames:
+    - StatusHealthy
+    - StatusWarning
+    - StatusCritical
+    - StatusOffline
   models.TreeOnderdeel:
     properties:
       id:
@@ -136,19 +181,12 @@ definitions:
         items:
           $ref: '#/definitions/models.TreeOnderdeel'
         type: array
+      parent_id:
+        type: integer
       sensoren:
         items:
-          $ref: '#/definitions/models.TreeSensor'
+          type: integer
         type: array
-    type: object
-  models.TreeSensor:
-    properties:
-      id:
-        type: integer
-      laatsteMeting:
-        type: number
-      sensorTypeId:
-        type: integer
     type: object
   v1.PaginatedResponse-models_Afwijking:
     properties:
@@ -180,6 +218,47 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/frontend/kunstwerken/{kunstwerkId}/sensoren/bulk-actueel:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Kunstwerk ID
+        in: path
+        name: kunstwerkId
+        required: true
+        type: integer
+      - description: JSON body met een array van sensor IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/frontend.BulkSensorDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SensorDetailResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Returns for each sensor that is given the latest meting (and afwijking
+        if it is) and the sensor configuration.
+      tags:
+      - Frontend
   /api/frontend/kunstwerken/{kunstwerkId}/tree:
     get:
       consumes:

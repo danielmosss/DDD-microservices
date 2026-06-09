@@ -38,6 +38,7 @@ func StartRestAPI() string {
 			frontendRouter.GET("/status", v2.GetStatus)
 			frontendRouter.GET("/kunstwerken", v1.GetKunstwerken)
 			frontendRouter.GET("/kunstwerken/:kunstwerkId/tree", frontend.GetKunstwerkTree)
+			frontendRouter.POST("/kunstwerken/:kunstwerkId/sensoren/bulk-actueel", frontend.GetBulkSensorData)
 			//frontendRouter.GET("/onderdelen/:id/sensoren", frontend.GetSensorenByOnderdeel)
 			//frontendRouter.GET("/sensoren/:id/metingen?range=24h", frontend.GetMetingenForSensorid)
 		}

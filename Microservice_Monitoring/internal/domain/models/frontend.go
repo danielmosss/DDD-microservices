@@ -15,9 +15,10 @@ type KunstwerkTreeResponse struct {
 }
 
 type SensorDetailResponse struct {
-	ID                  int64              `json:"id"`
-	SensorTypeID        int                `json:"sensorTypeId"`
-	SensorConfiguratie  SensorConfiguratie `json:"sensorConfiguratie"`
-	LaatsteMetingWaarde *float64           `json:"laatsteMeting"`
-	Status              string             `json:"status"`
+	ID                 int64              `json:"id"`
+	SensorType         SensorType         `json:"sensorType"`
+	SensorConfiguratie SensorConfiguratie `json:"sensorConfiguratie"`
+	LaatsteMeting      *Meting            `json:"laatsteMeting,omitempty"`
+	Afwijking          *Afwijking         `json:"afwijking,omitempty"`
+	Status             Status             `json:"status,omitempty"`
 }

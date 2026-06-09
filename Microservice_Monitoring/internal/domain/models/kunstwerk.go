@@ -26,14 +26,14 @@ type KunstwerkDetail struct {
 
 type KunstwerkOnderdeel struct {
 	ID          int64  `db:"id" json:"id"`
-	KunstwerkId int64  `db:"kunstwerk_id" json:"kunstwerkId"`
+	KunstwerkId int64  `db:"kunstwerk_id" json:"kunstwerk_id"`
 	Naam        string `db:"naam" json:"naam"`
 	ParentId    *int64 `db:"parent_id" json:"parentId"`
 }
 
 type KunstwerkOnderdeelMetSensor struct {
 	ID          int64   `db:"id" json:"id"`
-	KunstwerkId int64   `db:"kunstwerk_id" json:"kunstwerkId"`
+	KunstwerkId int64   `db:"kunstwerk_id" json:"kunstwerk_id"`
 	Naam        string  `db:"naam" json:"naam"`
 	ParentId    *int64  `db:"parent_id" json:"parentId"`
 	SensorIds   []int64 `db:"sensor_ids" json:"sensorIds"`

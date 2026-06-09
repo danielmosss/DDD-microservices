@@ -15,6 +15,67 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/frontend/kunstwerken/{kunstwerkId}/sensoren/bulk-actueel": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Frontend"
+                ],
+                "summary": "Returns for each sensor that is given the latest meting (and afwijking if it is) and the sensor configuration.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kunstwerk ID",
+                        "name": "kunstwerkId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "JSON body met een array van sensor IDs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/frontend.BulkSensorDataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SensorDetailResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/frontend/kunstwerken/{kunstwerkId}/tree": {
             "get": {
                 "description": "Tree of the kunstwerk",
@@ -401,16 +462,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "frontend.BulkSensorDataRequest": {
+            "type": "object",
+            "properties": {
+                "sensorIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "models.Afwijking": {
             "type": "object",
             "properties": {
-                "gemetenWaarde": {
+                "gemeten_waarde": {
                     "type": "number"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "isWarning": {
+                "is_warning": {
                     "type": "boolean"
                 },
                 "kunstwerkId": {
@@ -419,13 +491,13 @@ const docTemplate = `{
                 "metingId": {
                     "type": "integer"
                 },
-                "normMargePercentage": {
+                "norm_marge_percentage": {
                     "type": "number"
                 },
-                "normMaxWaarde": {
+                "norm_max_waarde": {
                     "type": "number"
                 },
-                "normMinWaarde": {
+                "norm_min_waarde": {
                     "type": "number"
                 },
                 "sensorId": {
@@ -499,7 +571,7 @@ const docTemplate = `{
                 "losseSensoren": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.TreeSensor"
+                        "type": "integer"
                     }
                 },
                 "onderdelen": {
@@ -562,7 +634,7 @@ const docTemplate = `{
                 "kunstwerkId": {
                     "type": "integer"
                 },
-                "lastAnalyzedMetingId": {
+                "last_analyzed_meting_id": {
                     "type": "integer"
                 },
                 "onderdeelId": {
@@ -571,7 +643,7 @@ const docTemplate = `{
                 "sensorConfiguratie": {
                     "$ref": "#/definitions/models.SensorConfiguratie"
                 },
-                "sensorTypeId": {
+                "sensortype_id": {
                     "type": "integer"
                 }
             }
@@ -582,19 +654,74 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "margePercentage": {
+                "marge_percentage": {
                     "type": "number"
                 },
-                "maxValue": {
+                "max_value": {
                     "type": "number"
                 },
-                "minValue": {
+                "min_value": {
                     "type": "number"
                 },
-                "sensorId": {
+                "sensor_id": {
                     "type": "integer"
                 }
             }
+        },
+        "models.SensorDetailResponse": {
+            "type": "object",
+            "properties": {
+                "afwijking": {
+                    "$ref": "#/definitions/models.Afwijking"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "laatsteMeting": {
+                    "$ref": "#/definitions/models.Meting"
+                },
+                "sensorConfiguratie": {
+                    "$ref": "#/definitions/models.SensorConfiguratie"
+                },
+                "sensorType": {
+                    "$ref": "#/definitions/models.SensorType"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Status"
+                }
+            }
+        },
+        "models.SensorType": {
+            "type": "object",
+            "properties": {
+                "drempel_is_range": {
+                    "type": "boolean"
+                },
+                "eenheid": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "naam": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Status": {
+            "type": "string",
+            "enum": [
+                "healthy",
+                "warning",
+                "critical",
+                "offline"
+            ],
+            "x-enum-varnames": [
+                "StatusHealthy",
+                "StatusWarning",
+                "StatusCritical",
+                "StatusOffline"
+            ]
         },
         "models.TreeOnderdeel": {
             "type": "object",
@@ -611,25 +738,14 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.TreeOnderdeel"
                     }
                 },
+                "parent_id": {
+                    "type": "integer"
+                },
                 "sensoren": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.TreeSensor"
+                        "type": "integer"
                     }
-                }
-            }
-        },
-        "models.TreeSensor": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "laatsteMeting": {
-                    "type": "number"
-                },
-                "sensorTypeId": {
-                    "type": "integer"
                 }
             }
         },
