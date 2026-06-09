@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-// create a function that will start the DailyHealthSummery it will send every 24 hours a report about a kunstwerk.
+// create a function that will start the DailyHealthSummary it will send every 24 hours a report about a kunstwerk.
 // it will check every 5 minuts in the database which still need to be done with a limit of 5 per check. For now i will just print the report to the console but in the future it will be send to a message queue.
-func StartDailyHealthSummery() {
+func StartDailyHealthSummary() {
 	// do one immediate check on startup, then every 5 minutes
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
@@ -55,7 +55,7 @@ func generateReport(kunstwerkId int64) {
 	KunstwerkPostgres := db.NewPostgresKunstwerkRepository(server.GetDBPool())
 	ctx := context.Background()
 
-	DHS, err := events.NewDailyHealthSummery(kunstwerkId)
+	DHS, err := events.NewDailyHealthSummary(kunstwerkId)
 	if err != nil {
 		log.Printf("Error generating Daily Health Summary for Kunstwerk ID %d: %v", kunstwerkId, err)
 		return

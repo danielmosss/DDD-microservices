@@ -25,7 +25,7 @@ func main() {
 
 	server.StartDatabaseConnection()
 
-	go messaging.StartDailyHealthSummery()
+	go messaging.StartDailyHealthSummary()
 
 	analysisRepo := db.NewAnalysisProcedureRepository(server.GetDBPool())
 	analysisScheduler := analyse.NewAnalysisScheduler(analysisRepo, time.Minute)

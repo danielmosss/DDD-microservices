@@ -18,7 +18,7 @@ const (
 	StatusOffline  Status = "offline"
 )
 
-type DailyHealthSummery struct {
+type DailyHealthSummary struct {
 	KunstwerkID               int64                  `json:"kunstwerkId"`
 	KunstwerkBeheerIdentifier string                 `json:"kunstwerkBeheerIdentifier"`
 	KunstwerkDetail           models.KunstwerkDetail `json:"kunstwerkDetail"`
@@ -29,7 +29,7 @@ type DailyHealthSummery struct {
 	AantalAfwijkingen         int                    `json:"aantalAfwijkingen"`
 }
 
-func NewDailyHealthSummery(KunstwerkID int64) (*DailyHealthSummery, error) {
+func NewDailyHealthSummary(KunstwerkID int64) (*DailyHealthSummary, error) {
 	KunstwerkPostgres := db.NewPostgresKunstwerkRepository(server.GetDBPool())
 	ctx := context.Background()
 	KunstwerkDetail, err := KunstwerkPostgres.GetKunstwerkMetType(ctx, KunstwerkID)
@@ -52,7 +52,7 @@ func NewDailyHealthSummery(KunstwerkID int64) (*DailyHealthSummery, error) {
 		return nil, fmt.Errorf("daily health summary ophalen aantal afwijkingen voor kunstwerk %d mislukt: %w", KunstwerkID, err)
 	}
 
-	return &DailyHealthSummery{
+	return &DailyHealthSummary{
 		KunstwerkID:               KunstwerkID,
 		KunstwerkBeheerIdentifier: KunstwerkDetail.Kunstwerk.BeheerIdentifier,
 		KunstwerkDetail:           KunstwerkDetail,
