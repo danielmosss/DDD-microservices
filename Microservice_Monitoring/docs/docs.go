@@ -15,6 +15,59 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/frontend/kunstwerken/{kunstwerkId}/tree": {
+            "get": {
+                "description": "Tree of the kunstwerk",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Frontend"
+                ],
+                "summary": "Returns a hierarchical tree of the kunstwerk, its onderdelen, and their sensoren",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kunstwerk ID",
+                        "name": "kunstwerkId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.KunstwerkTreeResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/afwijkingen/{kunstwerkId}": {
             "get": {
                 "description": "Returns all afwijkingen for the specified kunstwerk",
@@ -41,10 +94,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Afwijking"
-                            }
+                            "$ref": "#/definitions/v1.PaginatedResponse-models_Afwijking"
                         }
                     },
                     "400": {
@@ -210,7 +260,7 @@ const docTemplate = `{
         },
         "/api/v1/metingen/{kunstwerkId}": {
             "get": {
-                "description": "Returns all metingen for the specified kunstwerk",
+                "description": "Return all metingen for given kunstwerkid",
                 "consumes": [
                     "application/json"
                 ],
@@ -220,7 +270,7 @@ const docTemplate = `{
                 "tags": [
                     "Metingen"
                 ],
-                "summary": "Get all measurements for a kunstwerk",
+                "summary": "All metingen for one kunstwerk",
                 "parameters": [
                     {
                         "type": "integer",
@@ -246,10 +296,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/v1.PaginatedResponse-models_Meting"
-                            }
+                            "$ref": "#/definitions/v1.PaginatedResponse-models_Meting"
                         }
                     },
                     "400": {
@@ -432,6 +479,51 @@ const docTemplate = `{
                 }
             }
         },
+        "models.KunstwerkDetail": {
+            "type": "object",
+            "properties": {
+                "kunstwerk": {
+                    "$ref": "#/definitions/models.Kunstwerk"
+                },
+                "kunstwerkType": {
+                    "$ref": "#/definitions/models.KunstwerkType"
+                }
+            }
+        },
+        "models.KunstwerkTreeResponse": {
+            "type": "object",
+            "properties": {
+                "kunstwerkdetail": {
+                    "$ref": "#/definitions/models.KunstwerkDetail"
+                },
+                "losseSensoren": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TreeSensor"
+                    }
+                },
+                "onderdelen": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TreeOnderdeel"
+                    }
+                }
+            }
+        },
+        "models.KunstwerkType": {
+            "type": "object",
+            "properties": {
+                "beschrijving": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "naam": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Meting": {
             "type": "object",
             "properties": {
@@ -476,8 +568,82 @@ const docTemplate = `{
                 "onderdeelId": {
                     "type": "integer"
                 },
+                "sensorConfiguratie": {
+                    "$ref": "#/definitions/models.SensorConfiguratie"
+                },
                 "sensorTypeId": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.SensorConfiguratie": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "margePercentage": {
+                    "type": "number"
+                },
+                "maxValue": {
+                    "type": "number"
+                },
+                "minValue": {
+                    "type": "number"
+                },
+                "sensorId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TreeOnderdeel": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "naam": {
+                    "type": "string"
+                },
+                "onderdelen": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TreeOnderdeel"
+                    }
+                },
+                "sensoren": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TreeSensor"
+                    }
+                }
+            }
+        },
+        "models.TreeSensor": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "laatsteMeting": {
+                    "type": "number"
+                },
+                "sensorTypeId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.PaginatedResponse-models_Afwijking": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Afwijking"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/v1.PaginationMeta"
                 }
             }
         },

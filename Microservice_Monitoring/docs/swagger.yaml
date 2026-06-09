@@ -50,6 +50,35 @@ definitions:
       naam:
         type: string
     type: object
+  models.KunstwerkDetail:
+    properties:
+      kunstwerk:
+        $ref: '#/definitions/models.Kunstwerk'
+      kunstwerkType:
+        $ref: '#/definitions/models.KunstwerkType'
+    type: object
+  models.KunstwerkTreeResponse:
+    properties:
+      kunstwerkdetail:
+        $ref: '#/definitions/models.KunstwerkDetail'
+      losseSensoren:
+        items:
+          $ref: '#/definitions/models.TreeSensor'
+        type: array
+      onderdelen:
+        items:
+          $ref: '#/definitions/models.TreeOnderdeel'
+        type: array
+    type: object
+  models.KunstwerkType:
+    properties:
+      beschrijving:
+        type: string
+      id:
+        type: integer
+      naam:
+        type: string
+    type: object
   models.Meting:
     properties:
       id:
@@ -79,8 +108,56 @@ definitions:
         type: integer
       onderdeelId:
         type: integer
+      sensorConfiguratie:
+        $ref: '#/definitions/models.SensorConfiguratie'
       sensorTypeId:
         type: integer
+    type: object
+  models.SensorConfiguratie:
+    properties:
+      id:
+        type: integer
+      margePercentage:
+        type: number
+      maxValue:
+        type: number
+      minValue:
+        type: number
+      sensorId:
+        type: integer
+    type: object
+  models.TreeOnderdeel:
+    properties:
+      id:
+        type: integer
+      naam:
+        type: string
+      onderdelen:
+        items:
+          $ref: '#/definitions/models.TreeOnderdeel'
+        type: array
+      sensoren:
+        items:
+          $ref: '#/definitions/models.TreeSensor'
+        type: array
+    type: object
+  models.TreeSensor:
+    properties:
+      id:
+        type: integer
+      laatsteMeting:
+        type: number
+      sensorTypeId:
+        type: integer
+    type: object
+  v1.PaginatedResponse-models_Afwijking:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Afwijking'
+        type: array
+      pagination:
+        $ref: '#/definitions/v1.PaginationMeta'
     type: object
   v1.PaginatedResponse-models_Meting:
     properties:
@@ -103,6 +180,42 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/frontend/kunstwerken/{kunstwerkId}/tree:
+    get:
+      consumes:
+      - application/json
+      description: Tree of the kunstwerk
+      parameters:
+      - description: Kunstwerk ID
+        in: path
+        name: kunstwerkId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.KunstwerkTreeResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Returns a hierarchical tree of the kunstwerk, its onderdelen, and their
+        sensoren
+      tags:
+      - Frontend
   /api/v1/afwijkingen/{kunstwerkId}:
     get:
       consumes:
@@ -120,9 +233,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.Afwijking'
-            type: array
+            $ref: '#/definitions/v1.PaginatedResponse-models_Afwijking'
         "400":
           description: Bad Request
           schema:
@@ -234,7 +345,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns all metingen for the specified kunstwerk
+      description: Return all metingen for given kunstwerkid
       parameters:
       - description: Kunstwerk ID
         in: path
@@ -255,9 +366,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/v1.PaginatedResponse-models_Meting'
-            type: array
+            $ref: '#/definitions/v1.PaginatedResponse-models_Meting'
         "400":
           description: Bad Request
           schema:
@@ -270,7 +379,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get all measurements for a kunstwerk
+      summary: All metingen for one kunstwerk
       tags:
       - Metingen
   /api/v1/metingen/{kunstwerkId}/recent:

@@ -204,6 +204,68 @@ func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, k
 	return result, nil
 }
 
+func (r *PostgresKunstwerkRepository) GetKunstwerkOnderdelen(ctx context.Context, kunstwerkId int64) ([]models.KunstwerkOnderdeel, error) {
+	query := `
+SELECT o.id, o.naam, o.parent_id
+FROM onderdelen o
+WHERE kunstwerk_id = $1;
+	`
+
+	var onderdelen []models.KunstwerkOnderdeel
+	rows, err := r.pool.Query(ctx, query, kunstwerkId)
+	if err != nil {
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var onderdeel models.KunstwerkOnderdeel
+		err := rows.Scan(&onderdeel.ID, &onderdeel.Naam, &onderdeel.ParentId)
+		if err != nil {
+			return nil, err
+		}
+		onderdeel.KunstwerkId = kunstwerkId
+		onderdelen = append(onderdelen, onderdeel)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("fout bij itereren sensoren: %w", err)
+	}
+	return onderdelen, nil
+}
+
+func (r *PostgresKunstwerkRepository) GetKunstwerkOnderdelenWithSensorIDs(ctx context.Context, kunstwerkId int64) ([]models.KunstwerkOnderdeelMetSensor, error) {
+	query := `
+SELECT
+    o.id,
+    o.naam,
+    o.parent_id,
+    COALESCE(array_remove(array_agg(s.id), NULL), '{}') AS sensor_ids
+FROM onderdelen o
+LEFT JOIN sensor s ON o.id = s.onderdeel_id
+WHERE o.kunstwerk_id = $1
+GROUP BY o.id, o.naam, o.parent_id;
+	`
+
+	var onderdelen []models.KunstwerkOnderdeelMetSensor
+	rows, err := r.pool.Query(ctx, query, kunstwerkId)
+	if err != nil {
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var onderdeel models.KunstwerkOnderdeelMetSensor
+		err := rows.Scan(&onderdeel.ID, &onderdeel.Naam, &onderdeel.ParentId, &onderdeel.SensorIds)
+		if err != nil {
+			return nil, err
+		}
+		onderdeel.KunstwerkId = kunstwerkId
+		onderdelen = append(onderdelen, onderdeel)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("fout bij itereren sensoren: %w", err)
+	}
+	return onderdelen, nil
+}
+
 func (r *PostgresKunstwerkRepository) GetAantalSensoren(ctx context.Context, kunstwerkId int64) (int, error) {
 	query := `
 SELECT COUNT(DISTINCT s.id)

@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"monitoring/internal/app/restapi/frontend"
 	v1 "monitoring/internal/app/restapi/v1"
 	v2 "monitoring/internal/app/restapi/v2"
 
@@ -30,6 +31,15 @@ func StartRestAPI() string {
 		v2Router := api.Group("/v2")
 		{
 			v2Router.GET("/status", v2.GetStatus)
+		}
+
+		frontendRouter := api.Group("/frontend")
+		{
+			frontendRouter.GET("/status", v2.GetStatus)
+			frontendRouter.GET("/kunstwerken", v1.GetKunstwerken)
+			frontendRouter.GET("/kunstwerken/:kunstwerkId/tree", frontend.GetKunstwerkTree)
+			//frontendRouter.GET("/onderdelen/:id/sensoren", frontend.GetSensorenByOnderdeel)
+			//frontendRouter.GET("/sensoren/:id/metingen?range=24h", frontend.GetMetingenForSensorid)
 		}
 	}
 
