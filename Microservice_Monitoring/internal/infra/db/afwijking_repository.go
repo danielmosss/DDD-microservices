@@ -95,6 +95,7 @@ func (r *PostgresAfwijkingRepository) GetAfwijkingByKunstwerkID(ctx context.Cont
 	}
 
 	return afwijkingen, total, nil
+}
 
 func (r *PostgresAfwijkingRepository) countAfwijkingenByKunstwerkID(ctx context.Context, kunstwerkID int64) (int64, error) {
 	query := `

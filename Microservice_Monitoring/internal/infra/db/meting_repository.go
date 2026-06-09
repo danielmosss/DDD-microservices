@@ -84,6 +84,7 @@ func (r *PostgresMetingRepository) GetMetingenByKunstwerkID(ctx context.Context,
 	}
 
 	return metingen, total, nil
+}
 
 func (r *PostgresMetingRepository) countMetingenByKunstwerkID(ctx context.Context, kunstwerkID int64) (int64, error) {
 	query := `
