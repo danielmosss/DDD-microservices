@@ -204,11 +204,35 @@ func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, k
 	return result, nil
 }
 
+func (r *PostgresKunstwerkRepository) GetAantalSensoren(ctx context.Context, kunstwerkId int64) (int, error) {
+	query := `
+SELECT COUNT(DISTINCT s.id)
+FROM sensor s
+WHERE s.kunstwerk_id = $1
+  AND s.deleted = false
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, kunstwerkId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (r *PostgresKunstwerkRepository) GetAantalActieveSensoren(ctx context.Context, kunstwerkId int64) (int, error) {
 	query := `
-		SELECT COUNT(DISTINCT s.id)
-		FROM sensor s
-		WHERE s.kunstwerk_id = $1 AND s.deleted = false
+SELECT COUNT(DISTINCT s.id) AS active_sensors_with_recent_data
+FROM sensor s
+WHERE s.kunstwerk_id = $1
+  AND s.deleted = false
+  AND EXISTS (
+      SELECT 1
+      FROM meting m
+      WHERE m.sensor_id = s.id
+        AND m.time > NOW() - INTERVAL '24 hours'
+  );
 	`
 
 	var count int
@@ -259,6 +283,22 @@ func (r *PostgresKunstwerkRepository) UpdateKunstwerkDHupdateTime(ctx context.Co
 		WHERE id = $1
 	`
 	_, err := r.pool.Exec(ctx, query, kunstwerkId)
+	return err
+}
+
+func (r *PostgresKunstwerkRepository) InsertUpdateKunstwerkDHU(ctx context.Context, kunstwerkId int64, DHS *models.DailyHealthSummary) error {
+	query := `
+INSERT INTO dailyhealthupdatecache (kunstwerkid, status, aantalsensoren, aantalactievesensoren, aantalafwijkendesensoren, aantalafwijkingen)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (kunstwerkid)
+DO UPDATE SET
+    status = EXCLUDED.status,
+    aantalsensoren = EXCLUDED.aantalsensoren,
+    aantalactievesensoren = EXCLUDED.aantalactievesensoren,
+    aantalafwijkendesensoren = EXCLUDED.aantalafwijkendesensoren,
+    aantalafwijkingen = EXCLUDED.aantalafwijkingen;
+	`
+	_, err := r.pool.Exec(ctx, query, kunstwerkId, DHS.Status, DHS.AantalSensoren, DHS.AantalActieveSensoren, DHS.AantalAfwijkendeSensoren, DHS.AantalAfwijkingen)
 	return err
 }
 

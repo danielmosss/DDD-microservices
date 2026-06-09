@@ -9,32 +9,17 @@ import (
 	"time"
 )
 
-type Status string
-
-const (
-	StatusHealthy  Status = "healthy"
-	StatusWarning  Status = "warning"
-	StatusCritical Status = "critical"
-	StatusOffline  Status = "offline"
-)
-
-type DailyHealthSummary struct {
-	KunstwerkID               int64                  `json:"kunstwerkId"`
-	KunstwerkBeheerIdentifier string                 `json:"kunstwerkBeheerIdentifier"`
-	KunstwerkDetail           models.KunstwerkDetail `json:"kunstwerkDetail"`
-	Tijd                      time.Time              `json:"tijd"`
-	Status                    Status                 `json:"status"`
-	AantalActieveSensoren     int                    `json:"aantalActieveSensoren"`
-	AantalAfwijkendeSensoren  int                    `json:"aantalAfwijkendeSensoren"`
-	AantalAfwijkingen         int                    `json:"aantalAfwijkingen"`
-}
-
-func NewDailyHealthSummary(KunstwerkID int64) (*DailyHealthSummary, error) {
+func NewDailyHealthSummary(KunstwerkID int64) (*models.DailyHealthSummary, error) {
 	KunstwerkPostgres := db.NewPostgresKunstwerkRepository(server.GetDBPool())
 	ctx := context.Background()
 	KunstwerkDetail, err := KunstwerkPostgres.GetKunstwerkMetType(ctx, KunstwerkID)
 	if err != nil {
 		return nil, fmt.Errorf("daily health summary ophalen kunstwerk %d mislukt: %w", KunstwerkID, err)
+	}
+
+	AantalSensoren, err := KunstwerkPostgres.GetAantalSensoren(ctx, KunstwerkID)
+	if err != nil {
+		return nil, fmt.Errorf("daily health summary ophalen aantal sensoren voor kunstwerk %d mislukt: %w", KunstwerkID, err)
 	}
 
 	AantalActieveSensoren, err := KunstwerkPostgres.GetAantalActieveSensoren(ctx, KunstwerkID)
@@ -52,12 +37,25 @@ func NewDailyHealthSummary(KunstwerkID int64) (*DailyHealthSummary, error) {
 		return nil, fmt.Errorf("daily health summary ophalen aantal afwijkingen voor kunstwerk %d mislukt: %w", KunstwerkID, err)
 	}
 
-	return &DailyHealthSummary{
+	var status = models.StatusHealthy
+	if AantalAfwijkendeSensoren == 0 {
+		status = models.StatusOffline
+	} else {
+		var threshold = int(float64(AantalActieveSensoren) * 0.1)
+		if threshold > AantalAfwijkendeSensoren {
+			status = models.StatusWarning
+		} else {
+			status = models.StatusCritical
+		}
+	}
+
+	return &models.DailyHealthSummary{
 		KunstwerkID:               KunstwerkID,
 		KunstwerkBeheerIdentifier: KunstwerkDetail.Kunstwerk.BeheerIdentifier,
 		KunstwerkDetail:           KunstwerkDetail,
 		Tijd:                      time.Now(),
-		Status:                    StatusHealthy,
+		Status:                    status,
+		AantalSensoren:            AantalSensoren,
 		AantalActieveSensoren:     AantalActieveSensoren,
 		AantalAfwijkendeSensoren:  AantalAfwijkendeSensoren,
 		AantalAfwijkingen:         AantalAfwijkingen,

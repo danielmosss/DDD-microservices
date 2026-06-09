@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"monitoring/internal/app/analyse"
 	"monitoring/internal/app/restapi"
@@ -16,8 +15,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello World")
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)

@@ -67,5 +67,10 @@ func generateReport(kunstwerkId int64) {
 		log.Printf("Error updating last_send_dh_update for Kunstwerk ID %d: %v", kunstwerkId, err)
 	}
 
+	err = KunstwerkPostgres.InsertUpdateKunstwerkDHU(ctx, kunstwerkId, DHS)
+	if err != nil {
+		log.Printf("Error updating last_send_dh_update for Kunstwerk ID %d: %v", kunstwerkId, err)
+	}
+
 	// TODO: later implement sending report as an event to the message queue instead of printing it to the console
 }
