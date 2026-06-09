@@ -2,10 +2,6 @@
 -- Purpose: Analyze all unanalyzed measurements per sensor and detect anomalies
 -- Returns: COUNT of detected anomalies
 
--- Stored Procedure: analyze_sensor_metingen
--- Purpose: Analyze all unanalyzed measurements per sensor and detect anomalies
--- Returns: COUNT of detected anomalies
-
 CREATE OR REPLACE FUNCTION analyze_sensor_metingen()
 RETURNS TABLE (
     sensor_id BIGINT,
