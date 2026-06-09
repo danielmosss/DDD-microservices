@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
 CREATE TABLE kunstwerktype (
     id SERIAL PRIMARY KEY,
     naam VARCHAR(255) NOT NULL,
