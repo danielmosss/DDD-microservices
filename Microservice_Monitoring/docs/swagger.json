@@ -1,0 +1,502 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/v1/afwijkingen/{kunstwerkId}": {
+            "get": {
+                "description": "Returns all afwijkingen for the specified kunstwerk",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Afwijkingen"
+                ],
+                "summary": "Get all afwijkingen for a kunstwerk",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kunstwerk ID",
+                        "name": "kunstwerkId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Afwijking"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/kunstwerken": {
+            "get": {
+                "description": "Returns a list of active kunstwerken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Kunstwerken"
+                ],
+                "summary": "List active kunstwerken",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Kunstwerk"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/kunstwerken/{kunstwerkId}/sensoren": {
+            "get": {
+                "description": "Returns sensors for the specified kunstwerk",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sensoren"
+                ],
+                "summary": "List sensoren for a kunstwerk",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kunstwerk ID",
+                        "name": "kunstwerkId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Sensor"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/meting": {
+            "post": {
+                "description": "Create a manual meting for a sensor. SensorId is required.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Metingen"
+                ],
+                "summary": "Create a manual meting (inspecteur)",
+                "parameters": [
+                    {
+                        "description": "IncMeting",
+                        "name": "meting",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.IncMeting"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Meting"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/metingen/{kunstwerkId}": {
+            "get": {
+                "description": "Returns all metingen for the specified kunstwerk",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Metingen"
+                ],
+                "summary": "Get all measurements for a kunstwerk",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kunstwerk ID",
+                        "name": "kunstwerkId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit number of results",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset of number of results",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.PaginatedResponse-models_Meting"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/metingen/{kunstwerkId}/recent": {
+            "get": {
+                "description": "Returns the most recent meting per sensor for the specified kunstwerk",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Metingen"
+                ],
+                "summary": "Get most recent measurement per sensor for a kunstwerk",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kunstwerk ID",
+                        "name": "kunstwerkId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Meting"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/status": {
+            "get": {
+                "description": "Get the status of the API",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Get Status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Afwijking": {
+            "type": "object",
+            "properties": {
+                "gemetenWaarde": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isWarning": {
+                    "type": "boolean"
+                },
+                "kunstwerkId": {
+                    "type": "integer"
+                },
+                "metingId": {
+                    "type": "integer"
+                },
+                "normMargePercentage": {
+                    "type": "number"
+                },
+                "normMaxWaarde": {
+                    "type": "number"
+                },
+                "normMinWaarde": {
+                    "type": "number"
+                },
+                "sensorId": {
+                    "type": "integer"
+                },
+                "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.IncMeting": {
+            "type": "object",
+            "properties": {
+                "kunstwerkId": {
+                    "type": "integer"
+                },
+                "sensorId": {
+                    "type": "integer"
+                },
+                "waarde": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.Kunstwerk": {
+            "type": "object",
+            "properties": {
+                "beheerIdentifier": {
+                    "type": "string"
+                },
+                "beschrijving": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "boolean"
+                },
+                "geolocation": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kunstwerkTypeId": {
+                    "type": "integer"
+                },
+                "lastsenddhupdate": {
+                    "type": "string"
+                },
+                "naam": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Meting": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "inspectieId": {
+                    "type": "string"
+                },
+                "isHandmatig": {
+                    "type": "boolean"
+                },
+                "kunstwerkId": {
+                    "type": "integer"
+                },
+                "sensorId": {
+                    "type": "integer"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "waarde": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.Sensor": {
+            "type": "object",
+            "properties": {
+                "geolocation": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kunstwerkId": {
+                    "type": "integer"
+                },
+                "lastAnalyzedMetingId": {
+                    "type": "integer"
+                },
+                "onderdeelId": {
+                    "type": "integer"
+                },
+                "sensorTypeId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.PaginatedResponse-models_Meting": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Meting"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/v1.PaginationMeta"
+                }
+            }
+        },
+        "v1.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}
