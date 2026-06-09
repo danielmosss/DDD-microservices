@@ -84,10 +84,11 @@ func (r *PostgresKunstwerkRepository) GetActieveKunstwerken(ctx context.Context)
 
 func (r *PostgresKunstwerkRepository) GetSensorenByKunstwerkID(ctx context.Context, kunstwerkID int64) ([]models.Sensor, error) {
 	query := `
-		SELECT id, kunstwerk_id, onderdeel_id, geolocation, sensortype_id, last_analyzed_meting_id
+		SELECT sensor.id, kunstwerk_id, onderdeel_id, geolocation, sensortype_id, last_analyzed_meting_id, sc.*
 		FROM sensor
+		LEFT JOIN sensorconfiguratie sc ON sensor.id = sc.sensor_id
 		WHERE kunstwerk_id = $1 AND deleted = false
-		ORDER BY id ASC
+		ORDER BY sensor.id ASC
 	`
 
 	rows, err := r.pool.Query(ctx, query, kunstwerkID)
@@ -112,6 +113,11 @@ func (r *PostgresKunstwerkRepository) GetSensorenByKunstwerkID(ctx context.Conte
 			&geolocation,
 			&item.SensorTypeID,
 			&lastAnalyzedMetingID,
+			&item.SensorConfiguratie.ID,
+			&item.SensorConfiguratie.SensorID,
+			&item.SensorConfiguratie.MinValue,
+			&item.SensorConfiguratie.MaxValue,
+			&item.SensorConfiguratie.MargePercentage,
 		); err != nil {
 			return nil, fmt.Errorf("fout bij lezen sensor: %w", err)
 		}
