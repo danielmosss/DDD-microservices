@@ -36,7 +36,7 @@ func GetStatus(c *gin.Context) {
 // @Param kunstwerkId path int true "Kunstwerk ID"
 // @Param limit query int false "Limit number of results"
 // @Param offset query int false "Offset of number of results"
-// @Success 200 {array} PaginatedResponse[models.Meting]
+// @Success 200 {object} PaginatedResponse[models.Meting]
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/metingen/{kunstwerkId} [get]
@@ -107,7 +107,7 @@ func GetMetingenRecent(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param kunstwerkId path int true "Kunstwerk ID"
-// @Success 200 {array} PaginatedResponse[models.Afwijking]
+// @Success 200 {object} PaginatedResponse[models.Afwijking]
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/afwijkingen/{kunstwerkId} [get]

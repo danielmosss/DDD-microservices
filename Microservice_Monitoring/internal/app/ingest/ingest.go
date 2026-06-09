@@ -22,7 +22,7 @@ func NewIngestService(repo MetingRepository) *IngestService {
 
 func (s *IngestService) VerwerkMeting(ctx context.Context, inc models.IncMeting) (models.Meting, error) {
 	meting := models.Meting{
-		Time:        time.Now(),
+		Time:        time.Now().UTC(),
 		SensorID:    inc.SensorID,
 		KunstwerkID: inc.KunstwerkID,
 		Waarde:      inc.Waarde,
