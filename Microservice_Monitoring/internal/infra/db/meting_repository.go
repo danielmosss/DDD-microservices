@@ -76,11 +76,7 @@ func (r *PostgresMetingRepository) GetMetingenByKunstwerkID(ctx context.Context,
 
 	if err := rows.Err(); err != nil {
 		return nil, 0, fmt.Errorf("fout bij itereren metingen: %w", err)
-	}
-
-	total, err := r.countByKunstwerkID(ctx, kunstwerkID)
-	if err != nil {
-		return nil, 0, err
+	total, err := r.countMetingenByKunstwerkID(ctx, kunstwerkID)
 	}
 
 	return metingen, total, nil
