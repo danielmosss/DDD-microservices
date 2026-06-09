@@ -68,7 +68,8 @@ func (r *PostgresKunstwerkRepository) GetActieveKunstwerken(ctx context.Context)
 			item.Beschrijving = &value
 		}
 		if lastSendDhUpdate.Valid {
-			item.LastSendDhUpdate = lastSendDhUpdate.Time
+			value := lastSendDhUpdate.Time
+			item.LastSendDhUpdate = &value
 		}
 
 		kunstwerken = append(kunstwerken, item)
