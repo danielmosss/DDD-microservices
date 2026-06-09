@@ -1,0 +1,65 @@
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <h2>🏗️ {{ treeView.kunstwerk.naam }}</h2>
+
+    <ng-template #treeRecursive let-onderdeel>
+      <div class="node-wrapper">
+        <div class="node-item"
+             [class.active]="selectedOnderdeel?.id === onderdeel.id"
+             (click)="selectOnderdeel(onderdeel)">
+          <i class="fa-solid" [ngClass]="onderdeel.onderdelen.length > 0 ? 'fa-folder' : 'fa-component'"></i>
+          {{ onderdeel.naam }}
+        </div>
+
+        <div class="sub-tree" *ngIf="onderdeel.onderdelen.length > 0">
+          @for (child of onderdeel.onderdelen; track child.id) {
+            <ng-container *ngTemplateOutlet="treeRecursive; context: { $implicit: child }"></ng-container>
+          }
+        </div>
+      </div>
+    </ng-template>
+
+    @for (rootItem of treeView.onderdelen; track rootItem.id) {
+      <ng-container *ngTemplateOutlet="treeRecursive; context: { $implicit: rootItem }"></ng-container>
+    }
+  </aside>
+
+  <main class="main-content">
+    @if (selectedOnderdeel) {
+      <div class="header-bar">
+        <h1>{{ selectedOnderdeel.naam }}</h1>
+        <p>Onderdeel ID: #{{ selectedOnderdeel.id }} | {{ selectedOnderdeel.sensoren.length }} Sensoren gevonden</p>
+      </div>
+
+      <div class="card-grid">
+        @for (sensor of selectedOnderdeel.sensoren; track sensor.id) {
+          <div class="compact-card">
+            <div class="card-label">Sensor #{{ sensor.id }} (Type: {{ sensor.sensorTypeId }})</div>
+            <div class="card-value">
+              {{ sensor.laatsteMeting || '0.00' }}
+              <small style="font-size: 14px; color: #94a3b8">eenheid</small>
+            </div>
+            <div class="card-footer">
+              Status: <span [style.color]="sensor.laatsteMeting! > 100 ? 'red' : 'green'">
+                ● {{ getSensorStatus(sensor.laatsteMeting) }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (selectedOnderdeel.sensoren.length === 0) {
+        <div style="text-align: center; margin-top: 100px; color: #94a3b8;">
+          <i class="fa-solid fa-microchip" style="font-size: 48px; margin-bottom: 10px;"></i>
+          <p>Dit onderdeel heeft geen directe sensoren. Selecteer een sub-onderdeel in de boom.</p>
+        </div>
+      }
+    } @else {
+      <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-direction: column;">
+        <i class="fa-solid fa-arrow-left" style="font-size: 48px; margin-bottom: 20px;"></i>
+        <h2>Selecteer een onderdeel in de boomstructuur</h2>
+      </div>
+    }
+  </main>
+</div>
