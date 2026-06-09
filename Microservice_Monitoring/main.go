@@ -31,7 +31,7 @@ func main() {
 	analysisScheduler := analyse.NewAnalysisScheduler(analysisRepo, time.Minute)
 	analysisScheduler.Start(context.Background())
 
-	restapi.StartRestAPI()
+	go restapi.StartRestAPI()
 
 	// Needs to be the last because i put that quit stuff in there
 	consumers.StartConsumingSensorData()
