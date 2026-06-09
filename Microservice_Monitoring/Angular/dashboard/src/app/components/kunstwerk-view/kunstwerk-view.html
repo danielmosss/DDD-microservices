@@ -29,35 +29,59 @@
     @if (selectedOnderdeel) {
       <div class="header-bar">
         <h1>{{ selectedOnderdeel.naam }}</h1>
-        <p>Onderdeel ID: #{{ selectedOnderdeel.id }} | {{ selectedOnderdeel.sensoren.length }} Sensoren gevonden</p>
+        <p>Onderdeel ID: #{{ selectedOnderdeel.id }}</p>
       </div>
 
-      <div class="card-grid">
-        @for (sensor of selectedOnderdeel.sensoren; track sensor.id) {
-          <div class="compact-card">
-            <div class="card-label">Sensor #{{ sensor.id }} (Type: {{ sensor.sensorTypeId }})</div>
-            <div class="card-value">
-              {{ sensor.laatsteMeting || '0.00' }}
-              <small style="font-size: 14px; color: #94a3b8">eenheid</small>
-            </div>
-            <div class="card-footer">
-              Status: <span [style.color]="sensor.laatsteMeting! > 100 ? 'red' : 'green'">
-                ● {{ getSensorStatus(sensor.laatsteMeting) }}
-              </span>
-            </div>
+      @if (selectedOnderdeel.sensoren.length > 0) {
+        <div class="sensor-group">
+          <h3 class="group-title">Directe Sensoren</h3>
+          <div class="card-grid">
+            @for (sensor of selectedOnderdeel.sensoren; track sensor.id) {
+              <div class="compact-card">
+                <div class="card-label">Sensor #{{ sensor.id }} (Type: {{ sensor.sensorTypeId }})</div>
+                <div class="card-value">{{ sensor.laatsteMeting || '0.00' }}</div>
+                <div class="card-footer">
+                  <span class="status-dot" [class.warning]="sensor.laatsteMeting! > 100"></span>
+                  {{ getSensorStatus(sensor.laatsteMeting) }}
+                </div>
+              </div>
+            }
           </div>
-        }
-      </div>
+        </div>
+      }
 
-      @if (selectedOnderdeel.sensoren.length === 0) {
-        <div style="text-align: center; margin-top: 100px; color: #94a3b8;">
-          <i class="fa-solid fa-microchip" style="font-size: 48px; margin-bottom: 10px;"></i>
-          <p>Dit onderdeel heeft geen directe sensoren. Selecteer een sub-onderdeel in de boom.</p>
+      @for (subOnderdeel of selectedOnderdeel.onderdelen; track subOnderdeel.id) {
+        <div class="sensor-group sub-group">
+          <h4 class="sub-group-title">↳ {{ subOnderdeel.naam }}</h4>
+
+          @if (subOnderdeel.sensoren.length > 0) {
+            <div class="card-grid">
+              @for (sensor of subOnderdeel.sensoren; track sensor.id) {
+                <div class="compact-card child-card">
+                  <div class="card-label">Sensor #{{ sensor.id }}</div>
+                  <div class="card-value">{{ sensor.laatsteMeting || '0.00' }}</div>
+                  <div class="card-footer">
+                    <span class="status-dot" [class.warning]="sensor.laatsteMeting! > 100"></span>
+                    {{ getSensorStatus(sensor.laatsteMeting) }}
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-hint">Geen directe sensoren. Klik op "{{ subOnderdeel.naam }}" in de navigatieboom om verder in te zoomen.</p>
+          }
+        </div>
+      }
+
+      @if (selectedOnderdeel.sensoren.length === 0 && selectedOnderdeel.onderdelen.length === 0) {
+        <div class="empty-state">
+          <i class="fa-solid fa-microchip"></i>
+          <p>Dit onderdeel bevat geen sensoren of sub-onderdelen.</p>
         </div>
       }
     } @else {
-      <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-direction: column;">
-        <i class="fa-solid fa-arrow-left" style="font-size: 48px; margin-bottom: 20px;"></i>
+      <div class="empty-state">
+        <i class="fa-solid fa-arrow-left"></i>
         <h2>Selecteer een onderdeel in de boomstructuur</h2>
       </div>
     }
