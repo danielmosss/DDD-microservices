@@ -59,7 +59,11 @@ func main() {
 }
 
 func StartMessageBroker() {
-	natsConn, _ = nats.Connect(nats.DefaultURL)
+	var err error
+	natsConn, err = nats.Connect(nats.DefaultURL)
+	if err != nil {
+		log.Fatalf("Kan niet verbinden met NATS: %v", err)
+	}
 
 	var jsErr error
 	NatsStream, jsErr = natsConn.JetStream()
