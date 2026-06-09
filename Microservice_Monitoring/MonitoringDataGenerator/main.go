@@ -226,6 +226,7 @@ func setupStream() {
 
 func PublishMessage(subject string, data Meting) {
 	if NatsStream == nil {
+		log.Fatal("JetStream is niet geïnitialiseerd")
 	}
 
 	payloadBytes, err := json.Marshal(data)
