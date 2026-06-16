@@ -1,1 +1,19 @@
-<p>kunstwerkkiezer works!</p>
+<div class="dashboard">
+  <ul class="item-list" *ngIf="kunstwerken$ | async as data">
+    <li *ngFor="let kw of data"
+        (click)="onSelect(kw)"
+        [class.active]="kw.id === selectedKunstwerk?.id">
+      {{ kw.naam }} ({{ kw.beheerIdentifier }})
+    </li>
+  </ul>
+
+  <div class="detail-view" *ngIf="selectedKunstwerk">
+    <div class="title">
+      <h2>{{ selectedKunstwerk.naam }}</h2>
+      <button matButton="filled" [routerLink]="['/kunstwerk', selectedKunstwerk.id]">Bekijk sensoren</button>
+    </div>
+    <p><strong>Beschrijving:</strong> {{ selectedKunstwerk.beschrijving }}</p>
+    <p><strong>Locatie:</strong> {{ selectedKunstwerk.geolocation }}</p>
+    <p><strong>Laatste Update:</strong> {{ selectedKunstwerk.lastsenddhupdate | date:'medium' }}</p>
+  </div>
+</div>

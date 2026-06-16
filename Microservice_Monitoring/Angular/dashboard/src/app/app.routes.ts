@@ -11,9 +11,8 @@ export const routes: Routes = [
     path: 'kunstwerk/:kunstwerkid',
     component: KunstwerkViewComponent
   },
-  // Optioneel: een catch-all voor als je een onbekende URL intypt
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: ''
   }
 ];

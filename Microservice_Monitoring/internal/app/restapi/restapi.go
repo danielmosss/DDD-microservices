@@ -4,9 +4,11 @@ import (
 	"monitoring/internal/app/restapi/frontend"
 	v1 "monitoring/internal/app/restapi/v1"
 	v2 "monitoring/internal/app/restapi/v2"
+	"time"
 
 	_ "monitoring/docs"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -14,6 +16,15 @@ import (
 
 func StartRestAPI() string {
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:4200"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type", "X-Requested-With", "Authorization", "Ngrok-Skip-Browser-Warning"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	api := router.Group("/api")
 	{

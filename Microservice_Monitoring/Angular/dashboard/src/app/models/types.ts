@@ -46,14 +46,3 @@ export interface KunstwerkTreeView {
   onderdelen: Onderdeel[]; // De hoogste niveau onderdelen
   losseSensoren: Sensor[]; // Sensoren die direct aan het kunstwerk hangen, niet aan een onderdeel
 }
-
-export interface Kunstwerken {
-  id: number;
-  beheerIdentifier: string;
-  beschrijving: string;
-  deleted: boolean;
-  geolocation: string;
-  kunstwerkTypeId: number;
-  lastsenddhupdate: string;
-  naam: string;
-}
