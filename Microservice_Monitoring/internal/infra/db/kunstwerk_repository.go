@@ -364,6 +364,28 @@ DO UPDATE SET
 	return err
 }
 
+func (r *PostgresKunstwerkRepository) GetKunstwerkDHU(ctx context.Context, kunstwerkId int64) (models.DailyHealthUpdate, error) {
+	query := ` 
+SELECT *
+FROM dailyhealthupdatecache
+WHERE kunstwerkid = $1
+`
+
+	var result models.DailyHealthUpdate
+	err := r.pool.QueryRow(ctx, query, kunstwerkId).Scan(
+		&result.KunstwerkID,
+		&result.Status,
+		&result.AantalSensoren,
+		&result.AantalActieveSensoren,
+		&result.AantalAfwijkingen,
+		&result.AantalAfwijkendeSensoren,
+	)
+	if err != nil {
+		return models.DailyHealthUpdate{}, err
+	}
+	return result, nil
+}
+
 func (r *PostgresKunstwerkRepository) GetKunstwerkenNeedingReport(ctx context.Context) ([]int64, error) {
 	query := `
 		SELECT id

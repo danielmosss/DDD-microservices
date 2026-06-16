@@ -231,3 +231,31 @@ func GetSensorenByKunstwerk(c *gin.Context) {
 
 	c.JSON(http.StatusOK, sensoren)
 }
+
+// GetKunstwerkenDHU
+// @Summary Get daily health update for a kunstwerk
+// @Description Returns daily health update for the specified kunstwerk, including aggregated sensor data and health status
+// @Tags Kunstwerken
+// @Accept json
+// @Produce json
+// @Param kunstwerkId path int true "Kunstwerk ID"
+// @Success 200 {array} models.DailyHealthSummary
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/kunstwerken/{kunstwerkId}/dailyhealthupdate [get]
+func GetKunstwerkDHU(c *gin.Context) {
+	idStr := c.Param("kunstwerkId")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid kunstwerkId"})
+		return
+	}
+
+	repo := db.NewPostgresKunstwerkRepository(server.GetDBPool())
+	dhu, err := repo.GetKunstwerkDHU(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, dhu)
+}

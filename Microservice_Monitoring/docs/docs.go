@@ -214,6 +214,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/kunstwerken/{kunstwerkId}/dailyhealthupdate": {
+            "get": {
+                "description": "Returns daily health update for the specified kunstwerk, including aggregated sensor data and health status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Kunstwerken"
+                ],
+                "summary": "Get daily health update for a kunstwerk",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kunstwerk ID",
+                        "name": "kunstwerkId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DailyHealthSummary"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/kunstwerken/{kunstwerkId}/sensoren": {
             "get": {
                 "description": "Returns sensors for the specified kunstwerk",
@@ -504,6 +557,38 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DailyHealthSummary": {
+            "type": "object",
+            "properties": {
+                "aantalActieveSensoren": {
+                    "type": "integer"
+                },
+                "aantalAfwijkendeSensoren": {
+                    "type": "integer"
+                },
+                "aantalAfwijkingen": {
+                    "type": "integer"
+                },
+                "aantalSensoren": {
+                    "type": "integer"
+                },
+                "kunstwerkBeheerIdentifier": {
+                    "type": "string"
+                },
+                "kunstwerkDetail": {
+                    "$ref": "#/definitions/models.KunstwerkDetail"
+                },
+                "kunstwerkId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Status"
+                },
+                "tijd": {
                     "type": "string"
                 }
             }

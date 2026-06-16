@@ -29,6 +29,27 @@ definitions:
       time:
         type: string
     type: object
+  models.DailyHealthSummary:
+    properties:
+      aantalActieveSensoren:
+        type: integer
+      aantalAfwijkendeSensoren:
+        type: integer
+      aantalAfwijkingen:
+        type: integer
+      aantalSensoren:
+        type: integer
+      kunstwerkBeheerIdentifier:
+        type: string
+      kunstwerkDetail:
+        $ref: '#/definitions/models.KunstwerkDetail'
+      kunstwerkId:
+        type: integer
+      status:
+        $ref: '#/definitions/models.Status'
+      tijd:
+        type: string
+    type: object
   models.IncMeting:
     properties:
       kunstwerkId:
@@ -349,6 +370,42 @@ paths:
               type: string
             type: object
       summary: List active kunstwerken
+      tags:
+      - Kunstwerken
+  /api/v1/kunstwerken/{kunstwerkId}/dailyhealthupdate:
+    get:
+      consumes:
+      - application/json
+      description: Returns daily health update for the specified kunstwerk, including
+        aggregated sensor data and health status
+      parameters:
+      - description: Kunstwerk ID
+        in: path
+        name: kunstwerkId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DailyHealthSummary'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get daily health update for a kunstwerk
       tags:
       - Kunstwerken
   /api/v1/kunstwerken/{kunstwerkId}/sensoren:

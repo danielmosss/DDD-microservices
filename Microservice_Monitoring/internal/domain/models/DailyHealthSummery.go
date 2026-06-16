@@ -22,3 +22,12 @@ type DailyHealthSummary struct {
 	AantalAfwijkendeSensoren  int             `json:"aantalAfwijkendeSensoren"`
 	AantalAfwijkingen         int             `json:"aantalAfwijkingen"`
 }
+
+type DailyHealthUpdate struct {
+	KunstwerkID              int64  `json:"kunstwerkId"`
+	Status                   Status `json:"status"`
+	AantalSensoren           int    `json:"aantalSensoren"`
+	AantalActieveSensoren    int    `json:"aantalActieveSensoren"`
+	AantalAfwijkendeSensoren int    `json:"aantalAfwijkendeSensoren"`
+	AantalAfwijkingen        int    `json:"aantalAfwijkingen"`
+}
