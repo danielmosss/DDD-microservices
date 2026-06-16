@@ -38,6 +38,13 @@ func StartRestAPI() string {
 			v1Router.GET("/kunstwerken", v1.GetKunstwerken)
 			v1Router.GET("/kunstwerken/:kunstwerkId/sensoren", v1.GetSensorenByKunstwerk)
 			v1Router.GET("/kunstwerken/:kunstwerkId/dailyhealthupdate", v1.GetKunstwerkDHU)
+			v1Router.POST("/kunstwerken/:kunstwerkId/onderdelen", v1.CreateOnderdeel)
+			v1Router.DELETE("/kunstwerken/:kunstwerkId/onderdelen/:onderdeelId", v1.DeleteOnderdeel)
+			v1Router.POST("/kunstwerken/:kunstwerkId/onderdelen/:onderdeelId/sensoren", v1.CreateSensorForOnderdeel)
+			v1Router.PUT("/sensoren/:sensorId/configuratie", v1.UpdateSensorConfiguratie)
+			v1Router.DELETE("/sensoren/:sensorId", v1.DeleteSensor)
+			v1Router.GET("/sensortypes", v1.GetSensorTypes)
+			v1Router.GET("/kunstwerken/:kunstwerkId/sensor-configuratie-bronnen", v1.GetSensorConfiguratieBronnen)
 		}
 
 		v2Router := api.Group("/v2")

@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>Onderdeel aanmaken</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content class="dialog-content">
+    <div class="context-block">
+      <span>Kunstwerk</span>
+      <strong>{{ data.kunstwerkNaam || 'Onbekend kunstwerk' }}</strong>
+    </div>
+
+    <label>
+      Naam onderdeel
+      <input type="text" formControlName="naam" placeholder="Bijvoorbeeld fundering" />
+    </label>
+
+    <label>
+      Plaatsing
+      <select formControlName="plaatsing">
+        <option value="selected" [disabled]="!data.selectedOnderdeel">
+          Onder {{ data.selectedOnderdeel?.naam || 'geselecteerd onderdeel' }}
+        </option>
+        <option value="root">Als root-onderdeel</option>
+      </select>
+    </label>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button matButton="outlined" type="button" mat-dialog-close>Annuleren</button>
+    <button matButton="filled" type="submit">Aanmaken</button>
+  </mat-dialog-actions>
+</form>

@@ -59,6 +59,7 @@ func GetKunstwerkTree(c *gin.Context) {
 			ID:         onderdeel.ID,
 			Naam:       onderdeel.Naam,
 			ParentId:   *ParentId,
+			Deleted:    onderdeel.Deleted,
 			Sensoren:   onderdeel.SensorIds,
 			Onderdelen: nil,
 		}
