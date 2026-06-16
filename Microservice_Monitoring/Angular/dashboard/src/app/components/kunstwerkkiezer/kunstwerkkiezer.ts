@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Kunstwerk } from '../../models/types';
+import { Kunstwerk, KunstwerkDHU } from '../../models/types';
 import { DataService } from '../../../data.service';
 import { Router, RouterModule } from '@angular/router';
 import { DatePipe, NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject, switchMap, filter } from 'rxjs'; // <-- Voeg RxJS operators toe
 
 @Component({
   selector: 'app-kunstwerkkiezer',
@@ -14,23 +14,24 @@ import { Observable } from 'rxjs';
   styleUrl: './kunstwerkkiezer.scss',
 })
 export class Kunstwerkkiezer implements OnInit {
-  public selectedKunstwerk: Kunstwerk | null = null;
-public kunstwerken$: Observable<Kunstwerk[]> | null = null;
+  public kunstwerken$: Observable<Kunstwerk[]> | null = null;
+  private _selectedKunstwerk = new BehaviorSubject<Kunstwerk | null>(null);
+  public selectedKunstwerk$ = this._selectedKunstwerk.asObservable();
+  public kunstwerkDHU$: Observable<KunstwerkDHU> | null = null;
+
   constructor(
     private _dataService: DataService,
-    private _router: Router,
   ) {}
-
 
   ngOnInit(): void {
     this.kunstwerken$ = this._dataService.getKunstwerken();
+    this.kunstwerkDHU$ = this.selectedKunstwerk$.pipe(
+      filter((kw): kw is Kunstwerk => kw !== null),
+      switchMap((kw) => this._dataService.getKunstwerkDHU(kw.id))
+    );
   }
 
   onSelect(kw: Kunstwerk): void {
-    this.selectedKunstwerk = kw;
-  }
-
-  navigate(kwId: number): void {
-    this._router.navigate([`kunstwerk/${kwId}`]);
+    this._selectedKunstwerk.next(kw);
   }
 }

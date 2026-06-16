@@ -1,19 +1,35 @@
 <div class="dashboard">
   <ul class="item-list" *ngIf="kunstwerken$ | async as data">
-    <li *ngFor="let kw of data"
-        (click)="onSelect(kw)"
-        [class.active]="kw.id === selectedKunstwerk?.id">
+    <li
+      *ngFor="let kw of data"
+      (click)="onSelect(kw)"
+      [class.active]="kw.id === (selectedKunstwerk$ | async)?.id"
+    >
       {{ kw.naam }} ({{ kw.beheerIdentifier }})
     </li>
   </ul>
 
-  <div class="detail-view" *ngIf="selectedKunstwerk">
+  <div class="detail-view" *ngIf="selectedKunstwerk$ | async as selected">
     <div class="title">
-      <h2>{{ selectedKunstwerk.naam }}</h2>
-      <button matButton="filled" [routerLink]="['/kunstwerk', selectedKunstwerk.id]">Bekijk sensoren</button>
+      <h2>{{ selected.naam }}</h2>
+      <a matButton="filled" [routerLink]="['/kunstwerk', selected.id]">
+        Bekijk sensoren
+      </a>
     </div>
-    <p><strong>Beschrijving:</strong> {{ selectedKunstwerk.beschrijving }}</p>
-    <p><strong>Locatie:</strong> {{ selectedKunstwerk.geolocation }}</p>
-    <p><strong>Laatste Update:</strong> {{ selectedKunstwerk.lastsenddhupdate | date:'medium' }}</p>
+
+    <p><strong>Beschrijving:</strong> {{ selected.beschrijving }}</p>
+    <p><strong>Locatie:</strong> {{ selected.geolocation }}</p>
+    <p>
+      <strong>Laatste Update:</strong> {{ selected.lastsenddhupdate | date: 'medium' }}
+    </p>
+
+    <div *ngIf="kunstwerkDHU$ | async as dhu">
+      <h2>Daily Health Update</h2>
+      <p><strong>Status:</strong> {{ dhu.status }}</p>
+      <p><strong>Sensoren:</strong> {{ dhu.aantalSensoren }}</p>
+      <p><strong>Actieve Sensoren:</strong> {{ dhu.aantalActieveSensoren }}</p>
+      <p><strong>Afwijkende Sensoren:</strong> {{ dhu.aantalAfwijkendeSensoren }}</p>
+      <p><strong>Afwijkingen:</strong> {{ dhu.aantalAfwijkingen }}</p>
+    </div>
   </div>
 </div>

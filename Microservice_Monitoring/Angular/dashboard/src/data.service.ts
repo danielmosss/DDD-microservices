@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from './environments/environment.local'
 import { Router } from '@angular/router';
-import { Kunstwerk } from './app/models/types';
+import { Kunstwerk, KunstwerkDHU } from './app/models/types';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +15,10 @@ export class DataService {
 
   public getKunstwerken() {
     return this.http.get<Array<Kunstwerk>>(this._SecureApi + `/v1/kunstwerken`, { headers: this.getCustomHeaders() });
+  }
+
+  public getKunstwerkDHU(kunstwerkId: number) {
+    return this.http.get<KunstwerkDHU>(this._SecureApi + `/v1/kunstwerken/${kunstwerkId}/dailyhealthupdate`, { headers: this.getCustomHeaders() });
   }
 
   public getCustomHeaders(): HttpHeaders {

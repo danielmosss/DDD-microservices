@@ -28,6 +28,15 @@ export interface Kunstwerk {
   lastsenddhupdate: string | null; // time.Time komt als ISO string uit JSON
 }
 
+export interface KunstwerkDHU {
+  kunstwerkId: number;
+  status: 'healthy' | 'warning' | 'critical' | 'offline';
+  aantalSensoren: number;
+  aantalActieveSensoren: number;
+  aantalAfwijkendeSensoren: number;
+  aantalAfwijkingen: number;
+}
+
 // --- Toegevoegd voor de Boomstructuur ---
 
 export interface Onderdeel {
