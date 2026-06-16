@@ -4,7 +4,7 @@ import { DataService } from '../../../data.service';
 import { Router, RouterModule } from '@angular/router';
 import { DatePipe, NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { Observable, BehaviorSubject, switchMap, filter } from 'rxjs'; // <-- Voeg RxJS operators toe
+import { Observable, BehaviorSubject, switchMap, filter, tap } from 'rxjs'; // <-- Voeg RxJS operators toe
 
 @Component({
   selector: 'app-kunstwerkkiezer',
@@ -24,11 +24,17 @@ export class Kunstwerkkiezer implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.kunstwerken$ = this._dataService.getKunstwerken();
+    this.kunstwerken$ = this._dataService.getKunstwerken().pipe(
+      tap((data) =>{
+        if (data && data.length >0 && this._selectedKunstwerk.value === null){
+          this.onSelect(data[0]);
+        }
+      })
+    )
     this.kunstwerkDHU$ = this.selectedKunstwerk$.pipe(
       filter((kw): kw is Kunstwerk => kw !== null),
       switchMap((kw) => this._dataService.getKunstwerkDHU(kw.id))
-    );
+    )
   }
 
   onSelect(kw: Kunstwerk): void {

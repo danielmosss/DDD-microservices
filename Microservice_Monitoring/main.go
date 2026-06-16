@@ -25,7 +25,7 @@ func main() {
 	go messaging.StartDailyHealthSummary()
 
 	analysisRepo := db.NewAnalysisProcedureRepository(server.GetDBPool())
-	analysisScheduler := analyse.NewAnalysisScheduler(analysisRepo, time.Minute)
+	analysisScheduler := analyse.NewAnalysisScheduler(analysisRepo, time.Second*10)
 	analysisScheduler.Start(context.Background())
 
 	go restapi.StartRestAPI()

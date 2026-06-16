@@ -86,8 +86,13 @@ WHERE s.id = @sensor_id and s.kunstwerk_id = @kunstwerk_id
 		return models.SensorDetailResponse{}, err
 	}
 
+	SensorDetailResponse.Status = models.StatusHealthy
 	if SensorDetailResponse.Afwijking != nil {
-		SensorDetailResponse.Status = models.StatusWarning
+		if SensorDetailResponse.Afwijking.IsWarning {
+			SensorDetailResponse.Status = models.StatusWarning
+		} else {
+			SensorDetailResponse.Status = models.StatusCritical
+		}
 	}
 
 	return SensorDetailResponse, nil

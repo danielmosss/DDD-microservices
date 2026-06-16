@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from './environments/environment.local'
 import { Router } from '@angular/router';
-import { Kunstwerk, KunstwerkDHU } from './app/models/types';
+import { Kunstwerk, KunstwerkDHU, KunstwerkTreeView, SensorDetailResponse } from './app/models/types';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +19,14 @@ export class DataService {
 
   public getKunstwerkDHU(kunstwerkId: number) {
     return this.http.get<KunstwerkDHU>(this._SecureApi + `/v1/kunstwerken/${kunstwerkId}/dailyhealthupdate`, { headers: this.getCustomHeaders() });
+  }
+
+  public getKunstwerkTree(kunstwerkId: number) {
+    return this.http.get<KunstwerkTreeView>(this._SecureApi + `/frontend/kunstwerken/${kunstwerkId}/tree`, { headers: this.getCustomHeaders() });
+  }
+
+  public getKunstwerkenSensorenBulk(kunstwerkId: number, sensoren: Array<number>){
+    return this.http.post<SensorDetailResponse[]>(this._SecureApi + `/frontend/kunstwerken/${kunstwerkId}/sensoren/bulk-actueel`, { sensorIds: sensoren } , { headers: this.getCustomHeaders() });
   }
 
   public getCustomHeaders(): HttpHeaders {
