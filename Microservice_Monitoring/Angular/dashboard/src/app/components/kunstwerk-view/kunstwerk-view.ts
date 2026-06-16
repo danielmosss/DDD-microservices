@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KunstwerkTreeView, Onderdeel, SensorDetailResponse } from '../../models/types';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { forkJoin, map, Observable, take, tap, timer } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, take, tap, timer } from 'rxjs';
 import { DataService } from '../../../data.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -60,15 +60,15 @@ export class KunstwerkViewComponent implements OnInit {
 
   selectOnderdeel(onderdeel: Onderdeel) {
     this.selectedOnderdeel = onderdeel;
-    this.fetchAndAttachSensors(onderdeel);
-    for (let index = 0; index < onderdeel.onderdelen?.length; index++) {
-      const subOnderdeel = onderdeel.onderdelen[index];
-      this.fetchAndAttachSensors(subOnderdeel);
-    }
-    setTimeout(() => {
-      this.refreshFunction()
-      this._cdr.detectChanges();
-    }, 250);
+    const onderdelenToRefresh = [onderdeel, ...(onderdeel.onderdelen ?? [])];
+    const sensorRequests = onderdelenToRefresh.map((subOnderdeel) => {
+      subOnderdeel.sensoren_details = [];
+      return this.fetchAndAttachSensors(subOnderdeel);
+    });
+
+    forkJoin(sensorRequests).subscribe(() => {
+      this.refreshFunction();
+    });
   }
 
   public openCreateOnderdeelDialog(): void {
@@ -258,19 +258,21 @@ export class KunstwerkViewComponent implements OnInit {
     return null;
   }
 
-  private fetchAndAttachSensors(onderdeel: Onderdeel): void {
+  private fetchAndAttachSensors(onderdeel: Onderdeel): Observable<SensorDetailResponse[]> {
     if (!onderdeel.sensoren || onderdeel.sensoren.length === 0) {
-      return;
+      return of([]);
     }
 
-    this._dataService.getKunstwerkenSensorenBulk(this.kunstwerkId, onderdeel.sensoren).subscribe({
-      next: (sensorDetailsArray) => {
+    return this._dataService.getKunstwerkenSensorenBulk(this.kunstwerkId, onderdeel.sensoren).pipe(
+      tap((sensorDetailsArray) => {
         onderdeel.sensoren_details = [];
         onderdeel.sensoren_details = sensorDetailsArray;
-        this._cdr.detectChanges();
-      },
-      error: (err) => console.error(`Failed to fetch sensors for onderdeel ${onderdeel.id}`, err),
-    });
+      }),
+      catchError((err) => {
+        console.error(`Failed to fetch sensors for onderdeel ${onderdeel.id}`, err);
+        return of([]);
+      })
+    );
   }
 
   private refreshFunction(){
@@ -283,5 +285,6 @@ export class KunstwerkViewComponent implements OnInit {
         }
       })
     )
+    this._cdr.detectChanges();
   }
 }
