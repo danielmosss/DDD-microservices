@@ -51,8 +51,10 @@
         </h1>
         <p>Onderdeel ID: #{{ selectedOnderdeel.id }}</p>
         <ng-container *ngIf="{ timeLeft: refreshDataTimer$ | async } as timer">
-          <p *ngIf="(timer.timeLeft ?? 0) > 0">Refreshing data in {{ timer.timeLeft }} sec</p>
-          <p *ngIf="timer.timeLeft === 0">Refreshing data...</p>
+          <div *ngIf="selectedOnderdeel.sensoren.length > 0 && selectedOnderdeel.onderdelen !== null">
+            <p *ngIf="(timer.timeLeft ?? 0) > 0">Refreshing data in {{ timer.timeLeft }} sec</p>
+            <p *ngIf="timer.timeLeft === 0">Refreshing data...</p>
+          </div>
         </ng-container>
       </div>
 

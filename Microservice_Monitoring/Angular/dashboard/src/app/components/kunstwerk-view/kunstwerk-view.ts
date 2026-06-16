@@ -66,6 +66,9 @@ export class KunstwerkViewComponent implements OnInit {
       return this.fetchAndAttachSensors(subOnderdeel);
     });
 
+    if (onderdeel.sensoren.length == 0 && onderdeel.onderdelen == null){
+      return
+    }
     forkJoin(sensorRequests).subscribe(() => {
       this.refreshFunction();
     });
