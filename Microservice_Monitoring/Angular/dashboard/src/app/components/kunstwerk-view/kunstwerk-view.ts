@@ -58,6 +58,23 @@ export class KunstwerkViewComponent implements OnInit {
     );
   }
 
+  needsToRefreshData(): Boolean {
+    var aOnderdeelHasSensor: boolean = false;
+    if (this.selectedOnderdeel?.onderdelen == null && this.selectedOnderdeel?.sensoren.length == 0) return false;
+    if (this.selectedOnderdeel?.onderdelen !== null){
+      this.selectedOnderdeel?.onderdelen.map((subonderdeel)=>{
+        if(subonderdeel.sensoren.length > 0){
+          aOnderdeelHasSensor = true
+        }
+      })
+    }
+    if(this.selectedOnderdeel?.sensoren.length !== 0){
+      aOnderdeelHasSensor = true;
+    }
+
+    return aOnderdeelHasSensor;
+  }
+
   selectOnderdeel(onderdeel: Onderdeel) {
     this.selectedOnderdeel = onderdeel;
     const onderdelenToRefresh = [onderdeel, ...(onderdeel.onderdelen ?? [])];
@@ -66,7 +83,7 @@ export class KunstwerkViewComponent implements OnInit {
       return this.fetchAndAttachSensors(subOnderdeel);
     });
 
-    if (onderdeel.sensoren.length == 0 && onderdeel.onderdelen == null){
+    if (!this.needsToRefreshData()){
       return
     }
     forkJoin(sensorRequests).subscribe(() => {
