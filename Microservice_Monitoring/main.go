@@ -17,7 +17,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		log.Printf(".env file not loaded (%v); using environment variables", err)
 	}
 
 	server.StartDatabaseConnection()

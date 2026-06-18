@@ -17,7 +17,12 @@ import (
 )
 
 func StartConsumingSensorData() {
-	nc, err := nats.Connect(nats.DefaultURL)
+	natsURL := os.Getenv("NATS_URL")
+	if natsURL == "" {
+		natsURL = nats.DefaultURL
+	}
+
+	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		log.Fatalf("Kan niet verbinden met NATS: %v", err)
 	}

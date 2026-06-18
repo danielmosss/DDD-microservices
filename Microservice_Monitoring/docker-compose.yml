@@ -3,8 +3,8 @@ services:
   timescaledb:
     image: timescale/timescaledb:latest-pg15
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=monitoring_database_user
+      - POSTGRES_PASSWORD=pas5w0rd!MonitoringDDD
       - POSTGRES_DB=monitoring
     ports:
       - "5432:5432" # Opengezet zodat jouw lokale Go-code erbij kan
@@ -23,8 +23,7 @@ services:
       - ./migrations:/migrations
     command:
       - -path=/migrations
-      # Omdat migrate IN het docker netwerk draait, gebruikt hij de hostnaam 'timescaledb'
-      - -database=postgres://user:password@timescaledb:5432/monitoring?sslmode=disable
+      - -database=postgres://monitoring_database_user:pas5w0rd!MonitoringDDD@timescaledb:5432/monitoring?sslmode=disable
       - up
     depends_on:
       timescaledb:
@@ -38,5 +37,52 @@ services:
       - "4222:4222" # Voor je Go code
       - "8222:8222" # Dashboard voor in je browser
 
+  dashboard:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm start -- --host 0.0.0.0 --poll 2000"
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./Angular/dashboard:/app
+      - dashboard_node_modules:/app/node_modules
+    depends_on:
+      - nats
+
+  monitoring-data-generator:
+    build:
+      context: ./MonitoringDataGenerator
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgres://monitoring_database_user:pas5w0rd!MonitoringDDD@timescaledb:5432/monitoring?sslmode=disable
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      nats:
+        condition: service_started
+
+  monitoring-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgres://monitoring_database_user:pas5w0rd!MonitoringDDD@timescaledb:5432/monitoring?sslmode=disable
+      - NATS_URL=nats://nats:4222
+    ports:
+      - "8080:8080"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      nats:
+        condition: service_started
+      monitoring-data-generator:
+        condition: service_started
+
 volumes:
   timescaledb_data:
+  dashboard_node_modules:

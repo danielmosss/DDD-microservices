@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -38,7 +39,10 @@ func main() {
 	// Connection string - adjust based on where you're running this
 	// From local machine: localhost:5432
 	// From Docker container: timescaledb:5432
-	connString := "postgres://user:password@localhost:5432/monitoring?sslmode=disable"
+	connString := os.Getenv("DATABASE_URL")
+	if connString == "" {
+		connString = "postgres://user:password@localhost:5432/monitoring?sslmode=disable"
+	}
 
 	dbPool, err = pgxpool.New(context.Background(), connString)
 	if err != nil {
@@ -60,7 +64,12 @@ func main() {
 
 func StartMessageBroker() {
 	var err error
-	natsConn, err = nats.Connect(nats.DefaultURL)
+	natsURL := os.Getenv("NATS_URL")
+	if natsURL == "" {
+		natsURL = nats.DefaultURL
+	}
+
+	natsConn, err = nats.Connect(natsURL)
 	if err != nil {
 		log.Fatalf("Kan niet verbinden met NATS: %v", err)
 	}
