@@ -21,9 +21,34 @@ Dit start onder andere:
 - timescaledb (PostgreSQL/Timescale)
 - nats
 - migrate (eenmalig, stopt daarna met exit code 0)
-- monitoring-data-generator
 - monitoring-service
 - dashboard (Angular)
+
+## Generator aan/uit zetten
+
+De `monitoring-data-generator` is optioneel gemaakt via een Docker Compose profile.
+
+Generator uit (default):
+
+```powershell
+docker compose up -d
+```
+
+De generator kan gestart worden met het volgende commando:
+
+```powershell
+docker compose --profile generator up -d
+```
+
+Data Gen stoppen:
+```powershell
+docker compose stop monitoring-data-generator
+```
+
+Data Gen weer aanzetten:
+```powershell
+docker compose start monitoring-data-generator
+```
 
 ## Controleren of alles draait
 

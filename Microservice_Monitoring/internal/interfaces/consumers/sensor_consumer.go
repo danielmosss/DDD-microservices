@@ -22,52 +22,64 @@ func StartConsumingSensorData() {
 		natsURL = nats.DefaultURL
 	}
 
-	nc, err := nats.Connect(natsURL)
-	if err != nil {
-		log.Fatalf("Kan niet verbinden met NATS: %v", err)
-	}
-	defer nc.Close()
-
-	js, err := nc.JetStream()
-	if err != nil {
-		log.Fatalf("Kan JetStream niet initialiseren: %v", err)
-	}
-
 	durableName := "SensorDataWorker_1"
+	retryDelay := 5 * time.Second
 
 	metingRepo := db.NewPostgresMetingRepository(server.GetDBPool())
 	ingestService := ingest.NewIngestService(metingRepo)
 
-	_, err = js.Subscribe("sensor.data", func(m *nats.Msg) {
-		log.Printf("[SENSOR-CONSUMER] Nieuw sensor data bericht ontvangen: %s\n", string(m.Data))
-
-		//inc = IncMeting struct
-		var IncData models.IncMeting
-		err = json.Unmarshal(m.Data, &IncData)
-		if err != nil {
-			log.Printf("[SENSOR-CONSUMER] Fout bij unmarshallen van sensor data: %v\n", err)
-			m.Nak() // Vertel NATS: het is mislukt, stuur later opnieuw
-			return
-		}
-
-		ctx := context.Background()
-		_, err := ingestService.VerwerkMeting(ctx, IncData)
-		if err != nil {
-			log.Printf("[SENSOR-CONSUMER] Fout bij verwerken van sensor data: %v", err)
-			m.NakWithDelay(10 * time.Second)
-		} else {
-			m.Ack()
-			log.Printf("[SENSOR-CONSUMER] Sensor data afgehandeld (Ack verzonden).")
-		}
-	}, nats.Durable(durableName))
-
-	if err != nil {
-		log.Fatalf("Fout bij subscriben: %v", err)
-	}
-
-	log.Printf("[SENSOR-CONSUMER] Gestart en luistert op 'sensor.data' (Durable: %s)...\n", durableName)
-
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+
+	for {
+		nc, err := nats.Connect(natsURL)
+		if err != nil {
+			log.Printf("[SENSOR-CONSUMER] Kan niet verbinden met NATS (%v). Nieuwe poging over %s...", err, retryDelay)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		js, err := nc.JetStream()
+		if err != nil {
+			log.Printf("[SENSOR-CONSUMER] Kan JetStream niet initialiseren (%v). Nieuwe poging over %s...", err, retryDelay)
+			nc.Close()
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		sub, err := js.Subscribe("sensor.data", func(m *nats.Msg) {
+			log.Printf("[SENSOR-CONSUMER] Nieuw sensor data bericht ontvangen: %s\n", string(m.Data))
+
+			var incData models.IncMeting
+			if err := json.Unmarshal(m.Data, &incData); err != nil {
+				log.Printf("[SENSOR-CONSUMER] Fout bij unmarshallen van sensor data: %v\n", err)
+				m.Nak()
+				return
+			}
+
+			ctx := context.Background()
+			if _, err := ingestService.VerwerkMeting(ctx, incData); err != nil {
+				log.Printf("[SENSOR-CONSUMER] Fout bij verwerken van sensor data: %v", err)
+				m.NakWithDelay(10 * time.Second)
+				return
+			}
+
+			m.Ack()
+			log.Printf("[SENSOR-CONSUMER] Sensor data afgehandeld (Ack verzonden).")
+		}, nats.Durable(durableName))
+
+		if err != nil {
+			log.Printf("[SENSOR-CONSUMER] Fout bij subscriben (%v). Nieuwe poging over %s...", err, retryDelay)
+			nc.Close()
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		log.Printf("[SENSOR-CONSUMER] Gestart en luistert op 'sensor.data' (Durable: %s)...\n", durableName)
+
+		<-quit
+		_ = sub.Drain()
+		_ = nc.Drain()
+		return
+	}
 }

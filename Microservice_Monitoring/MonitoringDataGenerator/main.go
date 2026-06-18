@@ -58,7 +58,7 @@ func main() {
 
 	StartMessageBroker()
 	setupStream()
-	StartEventSubscriber()
+	//StartEventSubscriber()
 	StartGeneratingSensorDataAndPublishing()
 }
 

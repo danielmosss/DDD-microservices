@@ -11,7 +11,7 @@ services:
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d monitoring"]
+      test: ["CMD-SHELL", "pg_isready -U monitoring_database_user -d monitoring"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -53,6 +53,8 @@ services:
     build:
       context: ./MonitoringDataGenerator
       dockerfile: Dockerfile
+    profiles:
+      - generator
     environment:
       - DATABASE_URL=postgres://monitoring_database_user:pas5w0rd!MonitoringDDD@timescaledb:5432/monitoring?sslmode=disable
       - NATS_URL=nats://nats:4222
@@ -79,8 +81,6 @@ services:
       migrate:
         condition: service_completed_successfully
       nats:
-        condition: service_started
-      monitoring-data-generator:
         condition: service_started
 
 volumes:
