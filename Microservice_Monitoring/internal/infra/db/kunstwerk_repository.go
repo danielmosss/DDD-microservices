@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"monitoring/internal/domain/models" // Pas aan naar jouw pad
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -444,15 +443,15 @@ WHERE s.kunstwerk_id = $1
 	return count, nil
 }
 
-func (r *PostgresKunstwerkRepository) GetAantalAfwijkingen(ctx context.Context, kunstwerkId int64, sinds time.Time) (int, error) {
+func (r *PostgresKunstwerkRepository) GetAantalAfwijkingen(ctx context.Context, kunstwerkId int64) (int, error) {
 	query := `
 		SELECT COUNT(*)
 		FROM afwijking a
-		WHERE a.kunstwerk_id = $1 AND a.time >= $2
+		WHERE a.kunstwerk_id = $1 AND a.time >= NOW() - INTERVAL '24 hours'
 	`
 
 	var count int
-	err := r.pool.QueryRow(ctx, query, kunstwerkId, sinds).Scan(&count)
+	err := r.pool.QueryRow(ctx, query, kunstwerkId).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -460,15 +459,15 @@ func (r *PostgresKunstwerkRepository) GetAantalAfwijkingen(ctx context.Context, 
 	return count, nil
 }
 
-func (r *PostgresKunstwerkRepository) GetAantalSensorenMetNAfwijkingen(ctx context.Context, kunstwerkId int64, sinds time.Time) (int, error) {
+func (r *PostgresKunstwerkRepository) GetAantalSensorenMetNAfwijkingen(ctx context.Context, kunstwerkId int64) (int, error) {
 	query := `
 		SELECT COUNT(DISTINCT sensor_id)
 		FROM afwijking a
-		WHERE a.kunstwerk_id = $1 AND a.time >= $2
+		WHERE a.kunstwerk_id = $1 AND a.time >= NOW() - INTERVAL '24 hours'
 	`
 
 	var count int
-	err := r.pool.QueryRow(ctx, query, kunstwerkId, sinds).Scan(&count)
+	err := r.pool.QueryRow(ctx, query, kunstwerkId).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -515,8 +514,8 @@ WHERE kunstwerkid = $1
 		&result.Status,
 		&result.AantalSensoren,
 		&result.AantalActieveSensoren,
-		&result.AantalAfwijkingen,
 		&result.AantalAfwijkendeSensoren,
+		&result.AantalAfwijkingen,
 	)
 	if err != nil {
 		return models.DailyHealthUpdate{}, err

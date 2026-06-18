@@ -27,12 +27,12 @@ func NewDailyHealthSummary(KunstwerkID int64) (*models.DailyHealthSummary, error
 		return nil, fmt.Errorf("daily health summary ophalen aantal actieve sensoren voor kunstwerk %d mislukt: %w", KunstwerkID, err)
 	}
 
-	AantalAfwijkendeSensoren, err := KunstwerkPostgres.GetAantalSensorenMetNAfwijkingen(ctx, KunstwerkID, time.Now().Add(-24*time.Hour))
+	AantalAfwijkendeSensoren, err := KunstwerkPostgres.GetAantalSensorenMetNAfwijkingen(ctx, KunstwerkID)
 	if err != nil {
 		return nil, fmt.Errorf("daily health summary ophalen aantal afwijkende sensoren voor kunstwerk %d mislukt: %w", KunstwerkID, err)
 	}
 
-	AantalAfwijkingen, err := KunstwerkPostgres.GetAantalAfwijkingen(ctx, KunstwerkID, time.Now().Add(-24*time.Hour))
+	AantalAfwijkingen, err := KunstwerkPostgres.GetAantalAfwijkingen(ctx, KunstwerkID)
 	if err != nil {
 		return nil, fmt.Errorf("daily health summary ophalen aantal afwijkingen voor kunstwerk %d mislukt: %w", KunstwerkID, err)
 	}
