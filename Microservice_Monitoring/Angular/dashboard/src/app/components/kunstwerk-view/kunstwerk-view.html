@@ -10,6 +10,7 @@
         <div
           class="node-item"
           [class.active]="selectedOnderdeel?.id === onderdeel.id"
+          [class.deleted]="onderdeel.deleted"
           (click)="selectOnderdeel(onderdeel)"
         >
           <i
@@ -17,6 +18,9 @@
             [ngClass]="onderdeel.onderdelen?.length > 0 ? 'fa-folder' : 'fa-component'"
           ></i>
           {{ onderdeel.naam }}
+          @if (onderdeel.deleted) {
+            <span class="deleted-tag">Verwijderd</span>
+          }
         </div>
 
         <div class="sub-tree" *ngIf="onderdeel.onderdelen?.length > 0">
@@ -39,22 +43,77 @@
   <main class="main-content">
     @if (selectedOnderdeel) {
       <div class="header-bar">
-        <h1>{{ selectedOnderdeel.naam }}</h1>
+        <h1>
+          {{ selectedOnderdeel.naam }}
+          @if (selectedOnderdeel.deleted) {
+            <span class="deleted-tag large">Verwijderd</span>
+          }
+        </h1>
         <p>Onderdeel ID: #{{ selectedOnderdeel.id }}</p>
         <ng-container *ngIf="{ timeLeft: refreshDataTimer$ | async } as timer">
-          <p *ngIf="(timer.timeLeft ?? 0) > 0">Refreshing data in {{ timer.timeLeft }} sec</p>
-          <p *ngIf="timer.timeLeft === 0">Refreshing data...</p>
+          <div *ngIf="needsToRefreshData()">
+            <p *ngIf="(timer.timeLeft ?? 0) > 0">Refreshing data in {{ timer.timeLeft }} sec</p>
+            <p *ngIf="timer.timeLeft === 0">Refreshing data...</p>
+          </div>
         </ng-container>
       </div>
+
+      <section class="management-panel" *ngIf="!selectedOnderdeel.deleted">
+        <div class="management-actions">
+          <button
+            matButton="filled"
+            type="button"
+            (click)="openCreateOnderdeelDialog()"
+            [disabled]="isSavingOnderdeel"
+          >
+            {{ isSavingOnderdeel ? 'Onderdeel opslaan...' : 'Onderdeel aanmaken' }}
+          </button>
+          <button
+            matButton="outlined"
+            type="button"
+            (click)="openCreateSensorDialog()"
+            [disabled]="isSavingSensor || isPreparingSensorDialog"
+          >
+            {{
+              isPreparingSensorDialog
+                ? 'Sensorformulier laden...'
+                : isSavingSensor
+                  ? 'Sensor opslaan...'
+                  : 'Sensor aanmaken'
+            }}
+          </button>
+          <button
+            matButton="outlined"
+            type="button"
+            class="danger-action"
+            *ngIf="!selectedOnderdeel.deleted"
+            (click)="openDeleteOnderdeelDialog()"
+            [disabled]="isDeleting"
+          >
+            {{ isDeleting ? 'Verwijderen...' : 'Onderdeel verwijderen' }}
+          </button>
+        </div>
+
+        @if (managementError) {
+          <p class="feedback error">{{ managementError }}</p>
+        }
+
+        @if (managementSuccess) {
+          <p class="feedback success">{{ managementSuccess }}</p>
+        }
+      </section>
 
       <div class="sensor-group">
         <h3 class="group-title">Directe Sensoren</h3>
         @if (selectedOnderdeel.sensoren_details.length > 0) {
           <div class="card-grid">
             @for (sensor of selectedOnderdeel.sensoren_details; track sensor.id) {
-              <div class="compact-card">
+              <div class="compact-card" [class.deleted]="sensor.deleted">
                 <div class="card-label">
                   Sensor #{{ sensor.id }} (Type: {{ sensor.sensorType.naam }})
+                  @if (sensor.deleted) {
+                    <span class="deleted-tag">Verwijderd</span>
+                  }
                 </div>
                 <div class="card-value">
                   {{ (sensor.laatsteMeting.waarde | number: '1.0-2') || '0.00' }}
@@ -68,6 +127,15 @@
                 <div class="card-footer">
                   <span class="status-dot" [class.warning]="sensor.afwijking != null"></span>
                   {{ sensor.status }}
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    class="card-delete"
+                    *ngIf="!sensor.deleted"
+                    (click)="openDeleteSensorDialog(sensor, selectedOnderdeel)"
+                  >
+                    Verwijderen
+                  </button>
                 </div>
               </div>
             }
@@ -79,48 +147,57 @@
         <p class="empty-hint">Onderdeel {{ selectedOnderdeel.naam }} heeft geen sensoren.</p>
       }
 
-      <div class="sensor-group">
-        <h3 class="group-title">Onderliggende Sensoren</h3>
-        @for (subOnderdeel of selectedOnderdeel.onderdelen; track subOnderdeel.id) {
-          <div class="sensor-group sub-group">
-            <h4 class="sub-group-title">↳ {{ subOnderdeel.naam }}</h4>
+      @if (selectedOnderdeel.onderdelen !== null) {
+        <div class="sensor-group">
+          <h3 class="group-title">Onderliggende Sensoren</h3>
+          @for (subOnderdeel of selectedOnderdeel.onderdelen; track subOnderdeel.id) {
+            <div class="sensor-group sub-group">
+              <h4 class="sub-group-title">↳ {{ subOnderdeel.naam }}</h4>
 
-            @if (subOnderdeel.sensoren_details.length > 0) {
-              <div class="card-grid">
-                @for (sensor of subOnderdeel?.sensoren_details; track sensor.id) {
-                  <div class="compact-card child-card">
-                    <div class="card-label">Sensor #{{ sensor.id }}</div>
-                    <div class="card-value">
-                      {{ (sensor.laatsteMeting.waarde | number: '1.0-2') || '0.00' }}
-                      {{ sensor.sensorType.eenheid }}
+              @if (subOnderdeel.sensoren_details.length > 0) {
+                <div class="card-grid">
+                  @for (sensor of subOnderdeel?.sensoren_details; track sensor.id) {
+                    <div class="compact-card child-card" [class.deleted]="sensor.deleted">
+                      <div class="card-label">
+                        Sensor #{{ sensor.id }}
+                        @if (sensor.deleted) {
+                          <span class="deleted-tag">Verwijderd</span>
+                        }
+                      </div>
+                      <div class="card-value">
+                        {{ (sensor.laatsteMeting.waarde | number: '1.0-2') || '0.00' }}
+                        {{ sensor.sensorType.eenheid }}
+                      </div>
+                      <div class="card-range">
+                        {{ sensor.sensorConfiguratie.min_value }} {{ sensor.sensorType.eenheid }} -
+                        {{ sensor.sensorConfiguratie.max_value }}
+                        {{ sensor.sensorType.eenheid }} (Marge:
+                        {{ sensor.sensorConfiguratie.marge_percentage }}%)
+                      </div>
+                      <div class="card-footer">
+                        <span class="status-dot" [class.warning]="sensor.afwijking != null"></span>
+                        {{ sensor.status }}
+                        <button
+                          matButton="outlined"
+                          type="button"
+                          class="card-delete"
+                          *ngIf="!sensor.deleted"
+                          (click)="openDeleteSensorDialog(sensor, subOnderdeel)"
+                        >
+                          Verwijderen
+                        </button>
+                      </div>
                     </div>
-                    <div class="card-range">
-                      {{ sensor.sensorConfiguratie.min_value }} {{ sensor.sensorType.eenheid }} -
-                      {{ sensor.sensorConfiguratie.max_value }}
-                      {{ sensor.sensorType.eenheid }} (Marge:
-                      {{ sensor.sensorConfiguratie.marge_percentage }}%)
-                    </div>
-                    <div class="card-footer">
-                      <span class="status-dot" [class.warning]="sensor.afwijking != null"></span>
-                      {{ sensor.status }}
-                    </div>
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="empty-hint">
-                Geen directe sensoren. Klik op "{{ subOnderdeel.naam }}" in de navigatie om verder
-                in te zoomen.
-              </p>
-            }
-          </div>
-        }
-      </div>
-
-      @if (selectedOnderdeel.sensoren.length === 0 && selectedOnderdeel.onderdelen == null) {
-        <div class="empty-state">
-          <i class="fa-solid fa-microchip"></i>
-          <p>Dit onderdeel bevat geen sensoren of sub-onderdelen.</p>
+                  }
+                </div>
+              } @else {
+                <p class="empty-hint">
+                  Geen directe sensoren. Klik op "{{ subOnderdeel.naam }}" in de navigatie om verder
+                  in te zoomen.
+                </p>
+              }
+            </div>
+          }
         </div>
       }
     } @else {

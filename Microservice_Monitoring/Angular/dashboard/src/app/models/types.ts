@@ -6,6 +6,28 @@ export interface SensorConfiguratie {
   margePercentage: number | null;
 }
 
+export interface CreateOnderdeelRequest {
+  naam: string;
+  parentOnderdeelId: number | null;
+}
+
+export interface CreateSensorRequest {
+  sensorTypeId: number;
+  geolocation: string | null;
+  configuratieBronSensorId: number | null;
+  configuratie: UpdateSensorConfiguratieRequest;
+}
+
+export interface DeleteDataRequest {
+  preserveSensorData: boolean;
+}
+
+export interface UpdateSensorConfiguratieRequest {
+  minValue: number | null;
+  maxValue: number | null;
+  margePercentage: number | null;
+}
+
 export interface Kunstwerk {
   id: number;
   beheerIdentifier: string;
@@ -33,6 +55,7 @@ export interface Onderdeel {
   naam: string;
   kunstwerkId: number;
   parentOnderdeelId: number | null;
+  deleted: boolean;
 
   // De geneste children voor de UI:
   onderdelen: Onderdeel[];
@@ -44,6 +67,27 @@ export interface KunstwerkType {
   id: number;
   beschrijving: string;
   naam: string;
+}
+
+export interface SensorType {
+  drempel_is_range: boolean;
+  eenheid: string;
+  id: number;
+  naam: string;
+}
+
+export interface SensorConfiguratieBron {
+  sensorId: number;
+  onderdeelId: number | null;
+  onderdeelNaam: string | null;
+  sensorType: SensorType;
+  sensorConfiguratie: {
+    id: number;
+    marge_percentage: number | null;
+    max_value: number | null;
+    min_value: number | null;
+    sensor_id: number;
+  };
 }
 
 export interface KunstwerkDetail {
@@ -72,6 +116,7 @@ export interface SensorDetailResponse {
     time: string;
   };
   id: number;
+  deleted: boolean;
   laatsteMeting: {
     id: number;
     inspectieId: string;
@@ -88,6 +133,6 @@ export interface SensorDetailResponse {
     min_value: number;
     sensor_id: number;
   };
-  sensorType: { drempel_is_range: boolean; eenheid: string; id: number; naam: string };
+  sensorType: SensorType;
   status: string;
 }

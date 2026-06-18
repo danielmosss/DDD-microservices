@@ -29,6 +29,7 @@ type KunstwerkOnderdeel struct {
 	KunstwerkId int64  `db:"kunstwerk_id" json:"kunstwerk_id"`
 	Naam        string `db:"naam" json:"naam"`
 	ParentId    *int64 `db:"parent_id" json:"parentId"`
+	Deleted     bool   `db:"deleted" json:"deleted"`
 }
 
 type KunstwerkOnderdeelMetSensor struct {
@@ -36,5 +37,15 @@ type KunstwerkOnderdeelMetSensor struct {
 	KunstwerkId int64   `db:"kunstwerk_id" json:"kunstwerk_id"`
 	Naam        string  `db:"naam" json:"naam"`
 	ParentId    *int64  `db:"parent_id" json:"parentId"`
+	Deleted     bool    `db:"deleted" json:"deleted"`
 	SensorIds   []int64 `db:"sensor_ids" json:"sensorIds"`
+}
+
+type CreateOnderdeelRequest struct {
+	Naam              string `json:"naam"`
+	ParentOnderdeelID *int64 `json:"parentOnderdeelId"`
+}
+
+type DeleteDataRequest struct {
+	PreserveSensorData bool `json:"preserveSensorData"`
 }

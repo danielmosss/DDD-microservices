@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>Sensor aanmaken</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content class="dialog-content">
+    <div class="context-grid">
+      <div>
+        <span>Kunstwerk</span>
+        <strong>{{ data.kunstwerkNaam || 'Onbekend kunstwerk' }}</strong>
+      </div>
+      <div>
+        <span>Onderdeel</span>
+        <strong>{{ data.selectedOnderdeel.naam }}</strong>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Sensortype
+        <select formControlName="sensorTypeId">
+          @for (sensorType of data.sensorTypes; track sensorType.id) {
+            <option [ngValue]="sensorType.id">
+              {{ sensorType.naam }} {{ sensorType.eenheid ? '(' + sensorType.eenheid + ')' : '' }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Geolocation
+        <input type="text" formControlName="geolocation" placeholder="Optioneel" />
+      </label>
+    </div>
+
+    <label>
+      Configuratie kopieren
+      <select formControlName="configuratieBronSensorId" (change)="applyConfiguratieBron()">
+        <option [ngValue]="null">Zelf instellen</option>
+        @for (bron of configuratieBronnenVoorType(); track bron.sensorId) {
+          <option [ngValue]="bron.sensorId">
+            Sensor #{{ bron.sensorId }} - {{ bron.onderdeelNaam || 'zonder onderdeelnaam' }}
+          </option>
+        }
+      </select>
+    </label>
+
+    @if (selectedSensorType(); as sensorType) {
+      <div class="type-hint">
+        <strong>{{ sensorType.naam }}</strong>
+        <span>{{ sensorType.drempel_is_range ? 'Range-sensor: min en max zijn verplicht.' : 'Niet-range sensor: vul een normwaarde in.' }}</span>
+      </div>
+    }
+
+    <div class="form-grid">
+      <label>
+        {{ selectedSensorType()?.drempel_is_range ? 'Min waarde' : 'Normwaarde' }}
+        <input type="number" formControlName="minValue" />
+      </label>
+
+      @if (selectedSensorType()?.drempel_is_range) {
+        <label>
+          Max waarde
+          <input type="number" formControlName="maxValue" />
+        </label>
+      }
+
+      <label>
+        Marge (%)
+        <input type="number" min="0" formControlName="margePercentage" placeholder="Optioneel" />
+      </label>
+    </div>
+
+    @if (error) {
+      <p class="dialog-error">{{ error }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button matButton="outlined" type="button" mat-dialog-close>Annuleren</button>
+    <button matButton="filled" type="submit" [disabled]="data.sensorTypes.length === 0">Sensor aanmaken</button>
+  </mat-dialog-actions>
+</form>

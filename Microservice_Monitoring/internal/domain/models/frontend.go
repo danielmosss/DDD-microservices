@@ -4,6 +4,7 @@ type TreeOnderdeel struct {
 	ID         int64            `json:"id"`
 	Naam       string           `json:"naam"`
 	ParentId   int64            `json:"parent_id"`
+	Deleted    bool             `json:"deleted"`
 	Sensoren   []int64          `json:"sensoren"`
 	Onderdelen []*TreeOnderdeel `json:"onderdelen"`
 }
@@ -16,6 +17,7 @@ type KunstwerkTreeResponse struct {
 
 type SensorDetailResponse struct {
 	ID                 int64              `json:"id"`
+	Deleted            bool               `json:"deleted"`
 	SensorType         SensorType         `json:"sensorType"`
 	SensorConfiguratie SensorConfiguratie `json:"sensorConfiguratie"`
 	LaatsteMeting      *Meting            `json:"laatsteMeting,omitempty"`

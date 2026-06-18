@@ -3,10 +3,12 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"monitoring/internal/domain/models" // Pas aan naar jouw pad
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,6 +18,61 @@ type PostgresKunstwerkRepository struct {
 
 func NewPostgresKunstwerkRepository(pool *pgxpool.Pool) *PostgresKunstwerkRepository {
 	return &PostgresKunstwerkRepository{pool: pool}
+}
+
+func (r *PostgresKunstwerkRepository) KunstwerkExists(ctx context.Context, kunstwerkID int64) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM kunstwerk WHERE id = $1 AND deleted = false)`
+
+	var exists bool
+	if err := r.pool.QueryRow(ctx, query, kunstwerkID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("fout bij controleren kunstwerk: %w", err)
+	}
+
+	return exists, nil
+}
+
+func (r *PostgresKunstwerkRepository) OnderdeelBelongsToKunstwerk(ctx context.Context, onderdeelID int64, kunstwerkID int64) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM onderdelen WHERE id = $1 AND kunstwerk_id = $2 AND deleted = false)`
+
+	var exists bool
+	if err := r.pool.QueryRow(ctx, query, onderdeelID, kunstwerkID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("fout bij controleren onderdeel: %w", err)
+	}
+
+	return exists, nil
+}
+
+func (r *PostgresKunstwerkRepository) CreateOnderdeel(ctx context.Context, kunstwerkID int64, request models.CreateOnderdeelRequest) (models.KunstwerkOnderdeel, error) {
+	if request.ParentOnderdeelID != nil {
+		exists, err := r.OnderdeelBelongsToKunstwerk(ctx, *request.ParentOnderdeelID, kunstwerkID)
+		if err != nil {
+			return models.KunstwerkOnderdeel{}, err
+		}
+		if !exists {
+			return models.KunstwerkOnderdeel{}, pgx.ErrNoRows
+		}
+	}
+
+	query := `
+		INSERT INTO onderdelen (kunstwerk_id, naam, parent_id)
+		VALUES ($1, $2, $3)
+		RETURNING id, kunstwerk_id, naam, parent_id
+	`
+
+	var onderdeel models.KunstwerkOnderdeel
+	if err := r.pool.QueryRow(ctx, query, kunstwerkID, request.Naam, request.ParentOnderdeelID).Scan(
+		&onderdeel.ID,
+		&onderdeel.KunstwerkId,
+		&onderdeel.Naam,
+		&onderdeel.ParentId,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.KunstwerkOnderdeel{}, err
+		}
+		return models.KunstwerkOnderdeel{}, fmt.Errorf("fout bij aanmaken onderdeel: %w", err)
+	}
+
+	return onderdeel, nil
 }
 
 func (r *PostgresKunstwerkRepository) GetActieveKunstwerken(ctx context.Context) ([]models.Kunstwerk, error) {
@@ -84,10 +141,10 @@ func (r *PostgresKunstwerkRepository) GetActieveKunstwerken(ctx context.Context)
 
 func (r *PostgresKunstwerkRepository) GetSensorenByKunstwerkID(ctx context.Context, kunstwerkID int64) ([]models.Sensor, error) {
 	query := `
-		SELECT sensor.id, kunstwerk_id, onderdeel_id, geolocation, sensortype_id, last_analyzed_meting_id, sc.*
+		SELECT sensor.id, kunstwerk_id, onderdeel_id, geolocation, sensortype_id, last_analyzed_meting_id, sensor.deleted, sc.*
 		FROM sensor
 		LEFT JOIN sensorconfiguratie sc ON sensor.id = sc.sensor_id
-		WHERE kunstwerk_id = $1 AND deleted = false
+		WHERE kunstwerk_id = $1
 		ORDER BY sensor.id ASC
 	`
 
@@ -113,6 +170,7 @@ func (r *PostgresKunstwerkRepository) GetSensorenByKunstwerkID(ctx context.Conte
 			&geolocation,
 			&item.SensorTypeID,
 			&lastAnalyzedMetingID,
+			&item.Deleted,
 			&item.SensorConfiguratie.ID,
 			&item.SensorConfiguratie.SensorID,
 			&item.SensorConfiguratie.MinValue,
@@ -206,7 +264,7 @@ func (r *PostgresKunstwerkRepository) GetKunstwerkMetType(ctx context.Context, k
 
 func (r *PostgresKunstwerkRepository) GetKunstwerkOnderdelen(ctx context.Context, kunstwerkId int64) ([]models.KunstwerkOnderdeel, error) {
 	query := `
-SELECT o.id, o.naam, o.parent_id
+SELECT o.id, o.naam, o.parent_id, o.deleted
 FROM onderdelen o
 WHERE kunstwerk_id = $1;
 	`
@@ -214,12 +272,13 @@ WHERE kunstwerk_id = $1;
 	var onderdelen []models.KunstwerkOnderdeel
 	rows, err := r.pool.Query(ctx, query, kunstwerkId)
 	if err != nil {
+		return nil, fmt.Errorf("fout bij ophalen onderdelen: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var onderdeel models.KunstwerkOnderdeel
-		err := rows.Scan(&onderdeel.ID, &onderdeel.Naam, &onderdeel.ParentId)
+		err := rows.Scan(&onderdeel.ID, &onderdeel.Naam, &onderdeel.ParentId, &onderdeel.Deleted)
 		if err != nil {
 			return nil, err
 		}
@@ -238,22 +297,24 @@ SELECT
     o.id,
     o.naam,
     o.parent_id,
+	o.deleted,
     COALESCE(array_remove(array_agg(s.id), NULL), '{}') AS sensor_ids
 FROM onderdelen o
 LEFT JOIN sensor s ON o.id = s.onderdeel_id
 WHERE o.kunstwerk_id = $1
-GROUP BY o.id, o.naam, o.parent_id;
+GROUP BY o.id, o.naam, o.parent_id, o.deleted;
 	`
 
 	var onderdelen []models.KunstwerkOnderdeelMetSensor
 	rows, err := r.pool.Query(ctx, query, kunstwerkId)
 	if err != nil {
+		return nil, fmt.Errorf("fout bij ophalen onderdelen met sensoren: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var onderdeel models.KunstwerkOnderdeelMetSensor
-		err := rows.Scan(&onderdeel.ID, &onderdeel.Naam, &onderdeel.ParentId, &onderdeel.SensorIds)
+		err := rows.Scan(&onderdeel.ID, &onderdeel.Naam, &onderdeel.ParentId, &onderdeel.Deleted, &onderdeel.SensorIds)
 		if err != nil {
 			return nil, err
 		}
@@ -264,6 +325,83 @@ GROUP BY o.id, o.naam, o.parent_id;
 		return nil, fmt.Errorf("fout bij itereren sensoren: %w", err)
 	}
 	return onderdelen, nil
+}
+
+func (r *PostgresKunstwerkRepository) DeleteOnderdeelTree(ctx context.Context, kunstwerkID int64, onderdeelID int64, preserveSensorData bool) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("fout bij starten transactie: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	subtreeQuery := `
+		WITH RECURSIVE subtree AS (
+			SELECT id
+			FROM onderdelen
+			WHERE id = $1 AND kunstwerk_id = $2
+			UNION ALL
+			SELECT child.id
+			FROM onderdelen child
+			JOIN subtree parent ON child.parent_id = parent.id
+			WHERE child.kunstwerk_id = $2
+		)
+		SELECT id FROM subtree
+	`
+
+	rows, err := tx.Query(ctx, subtreeQuery, onderdeelID, kunstwerkID)
+	if err != nil {
+		return fmt.Errorf("fout bij ophalen onderdeelboom: %w", err)
+	}
+
+	onderdeelIDs := make([]int64, 0)
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return fmt.Errorf("fout bij lezen onderdeelboom: %w", err)
+		}
+		onderdeelIDs = append(onderdeelIDs, id)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return fmt.Errorf("fout bij itereren onderdeelboom: %w", err)
+	}
+	rows.Close()
+
+	if len(onderdeelIDs) == 0 {
+		return pgx.ErrNoRows
+	}
+
+	if preserveSensorData {
+		if _, err := tx.Exec(ctx, `UPDATE sensor SET deleted = true WHERE kunstwerk_id = $1 AND onderdeel_id = ANY($2)`, kunstwerkID, onderdeelIDs); err != nil {
+			return fmt.Errorf("fout bij soft delete sensoren: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `UPDATE onderdelen SET deleted = true WHERE kunstwerk_id = $1 AND id = ANY($2)`, kunstwerkID, onderdeelIDs); err != nil {
+			return fmt.Errorf("fout bij soft delete onderdelen: %w", err)
+		}
+	} else {
+		if _, err := tx.Exec(ctx, `DELETE FROM afwijking WHERE sensor_id IN (SELECT id FROM sensor WHERE kunstwerk_id = $1 AND onderdeel_id = ANY($2))`, kunstwerkID, onderdeelIDs); err != nil {
+			return fmt.Errorf("fout bij verwijderen afwijkingen: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM meting WHERE sensor_id IN (SELECT id FROM sensor WHERE kunstwerk_id = $1 AND onderdeel_id = ANY($2))`, kunstwerkID, onderdeelIDs); err != nil {
+			return fmt.Errorf("fout bij verwijderen metingen: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM sensorconfiguratie WHERE sensor_id IN (SELECT id FROM sensor WHERE kunstwerk_id = $1 AND onderdeel_id = ANY($2))`, kunstwerkID, onderdeelIDs); err != nil {
+			return fmt.Errorf("fout bij verwijderen sensorconfiguratie: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM sensor WHERE kunstwerk_id = $1 AND onderdeel_id = ANY($2)`, kunstwerkID, onderdeelIDs); err != nil {
+			return fmt.Errorf("fout bij verwijderen sensoren: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM onderdelen WHERE kunstwerk_id = $1 AND id = ANY($2)`, kunstwerkID, onderdeelIDs); err != nil {
+			return fmt.Errorf("fout bij verwijderen onderdelen: %w", err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("fout bij bevestigen delete transactie: %w", err)
+	}
+
+	return nil
 }
 
 func (r *PostgresKunstwerkRepository) GetAantalSensoren(ctx context.Context, kunstwerkId int64) (int, error) {
