@@ -1,14 +1,25 @@
-name: Go Tests
+name: Monitoring Go Tests
 
 on:
   push:
     branches:
       - main
       - master
+    paths:
+      - Microservice_Monitoring/**
+      - .github/workflows/monitoring-go-tests.yml
   pull_request:
+    paths:
+      - Microservice_Monitoring/**
+      - .github/workflows/monitoring-go-tests.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    working-directory: Microservice_Monitoring
 
 jobs:
   unit-and-interface-tests:
@@ -22,7 +33,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: Microservice_Monitoring/go.mod
 
       - name: Download dependencies
         run: go mod download
@@ -42,7 +53,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: Microservice_Monitoring/go.mod
 
       - name: Download dependencies
         run: go mod download

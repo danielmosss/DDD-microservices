@@ -45,14 +45,16 @@ go test -tags=integration ./tests/integration -v
 
 ## GitHub Actions (automatisch testen)
 
-Deze repo heeft nu een workflow die automatisch draait op push en pull request:
+Omdat dit project in een monorepo staat, moet de workflow in de root van de monorepo staan.
+
+De workflow draait automatisch op push en pull request (alleen bij wijzigingen in `Microservice_Monitoring/**`):
 
 - Unit + interface tests: `go test ./internal/... -v`
 - Integratie tests: start Docker Compose, wacht op API, run `go test -tags=integration ./tests/integration -v`
 
 Workflow bestand:
 
-- `.github/workflows/go-tests.yml`
+- `DDD-microservices/.github/workflows/monitoring-go-tests.yml`
 
 ## Lokaal opstarten met Docker Compose
 
