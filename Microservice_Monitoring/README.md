@@ -8,6 +8,52 @@ Voer uit in de root van het project:
 swag init -g main.go -o docs
 ```
 
+## Go unit tests
+
+Run alle Go unit tests:
+
+```powershell
+go test ./...
+```
+
+Run alleen tests voor v1 REST API package:
+
+```powershell
+go test ./internal/app/restapi/v1 -v
+```
+
+## Teststrategie
+
+Deze repo gebruikt 3 testlagen:
+
+- Unit tests: pure functies/validatie zonder externe afhankelijkheden.
+- Interface tests: HTTP contract tests op handler-niveau met `httptest`.
+- Integratie tests: end-to-end tegen een draaiende API (Docker Compose).
+
+Run alleen unit + interface tests:
+
+```powershell
+go test ./internal/... -v
+```
+
+Run integratie tests (API moet draaien op localhost:8080):
+
+```powershell
+docker compose up -d --build
+go test -tags=integration ./tests/integration -v
+```
+
+## GitHub Actions (automatisch testen)
+
+Deze repo heeft nu een workflow die automatisch draait op push en pull request:
+
+- Unit + interface tests: `go test ./internal/... -v`
+- Integratie tests: start Docker Compose, wacht op API, run `go test -tags=integration ./tests/integration -v`
+
+Workflow bestand:
+
+- `.github/workflows/go-tests.yml`
+
 ## Lokaal opstarten met Docker Compose
 
 Voer uit in de root van het project:
