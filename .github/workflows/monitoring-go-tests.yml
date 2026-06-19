@@ -4,11 +4,12 @@ on:
   push:
     branches:
       - main
-      - master
     paths:
       - Microservice_Monitoring/**
       - .github/workflows/monitoring-go-tests.yml
   pull_request:
+    branches:
+      - main
     paths:
       - Microservice_Monitoring/**
       - .github/workflows/monitoring-go-tests.yml
