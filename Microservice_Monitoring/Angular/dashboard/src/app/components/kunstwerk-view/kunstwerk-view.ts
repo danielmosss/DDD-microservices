@@ -297,8 +297,8 @@ export class KunstwerkViewComponent implements OnInit {
 
   private refreshFunction(){
     this.refreshDataTimer$ = timer(0,1000).pipe(
-      map(tick => 10 - tick),
-      take(11),
+      map(tick => 5 - tick),
+      take(6),
       tap(value =>{
         if (value === 0 ){
           if (this.selectedOnderdeel) this.selectOnderdeel(this.selectedOnderdeel)

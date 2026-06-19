@@ -16,6 +16,18 @@ Voer uit in de root van het project:
 docker compose up -d
 ```
 
+Wanneer je code changes heb gedaan en dan opnieuw docker wil builden:
+```powershell
+docker compose down 
+docker compose up -d --build
+```
+
+Met generator erbij:
+```powershell
+docker compose --profile generator down 
+docker compose --profile generator up -d --build
+```
+
 Dit start onder andere:
 
 - timescaledb (PostgreSQL/Timescale)
@@ -76,8 +88,14 @@ docker compose logs -f monitoring-data-generator
 docker compose down
 ```
 
+Als de generator ook aan stond, moet je hem meegeven anders wordt hij niet gestopt/verwijderd:
+
+```powershell
+docker compose --profile generator down
+```
+
 Wil je ook de database-volume opruimen (let op: data gaat verloren):
 
 ```powershell
-docker compose down -v
+docker compose --profile generator down -v
 ```
