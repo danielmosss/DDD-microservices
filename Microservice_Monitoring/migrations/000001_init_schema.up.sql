@@ -29,7 +29,7 @@ CREATE TABLE onderdelen (
 CREATE TABLE sensortype (
     id SERIAL PRIMARY KEY,
     naam VARCHAR(255) NOT NULL,
-    eenheid VARCHAR(50),
+    eenheid VARCHAR(50) NOT NULL,
     drempel_is_range BOOLEAN NOT NULL
 );
 

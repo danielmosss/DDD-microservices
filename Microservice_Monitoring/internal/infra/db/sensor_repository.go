@@ -23,7 +23,7 @@ func NewPostgresSensorRepository(pool *pgxpool.Pool) *PostgresSensorRepository {
 
 func (r *PostgresSensorRepository) GetSensorTypes(ctx context.Context) ([]models.SensorType, error) {
 	query := `
-		SELECT id, naam, COALESCE(eenheid, ''), drempel_is_range
+		SELECT id, naam, eenheid, drempel_is_range
 		FROM sensortype
 		ORDER BY naam ASC, id ASC
 	`
@@ -52,7 +52,7 @@ func (r *PostgresSensorRepository) GetSensorTypes(ctx context.Context) ([]models
 
 func (r *PostgresSensorRepository) GetSensorTypeByID(ctx context.Context, sensorTypeID int64) (models.SensorType, error) {
 	query := `
-		SELECT id, naam, COALESCE(eenheid, ''), drempel_is_range
+		SELECT id, naam, eenheid, drempel_is_range
 		FROM sensortype
 		WHERE id = $1
 	`
