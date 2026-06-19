@@ -9,11 +9,12 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CreateOnderdeelDialogComponent } from './dialogs/create-onderdeel-dialog/create-onderdeel-dialog';
 import { CreateSensorDialogComponent } from './dialogs/create-sensor-dialog/create-sensor-dialog';
 import { DeleteDataDialogComponent } from './dialogs/delete-data-dialog/delete-data-dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-kunstwerk-view',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatButtonModule, MatDialogModule],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatDialogModule, MatTooltipModule],
   templateUrl: './kunstwerk-view.html',
   styleUrls: ['./kunstwerk-view.scss'],
 })
@@ -297,8 +298,8 @@ export class KunstwerkViewComponent implements OnInit {
 
   private refreshFunction(){
     this.refreshDataTimer$ = timer(0,1000).pipe(
-      map(tick => 5 - tick),
-      take(6),
+      map(tick => 10 - tick),
+      take(11),
       tap(value =>{
         if (value === 0 ){
           if (this.selectedOnderdeel) this.selectOnderdeel(this.selectedOnderdeel)

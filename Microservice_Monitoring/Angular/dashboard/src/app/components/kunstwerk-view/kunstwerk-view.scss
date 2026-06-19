@@ -56,6 +56,18 @@
         font-size: 0.9rem;
         margin: 0px;
       }
+
+      .refresh-status {
+        align-items: center;
+        display: inline-flex;
+        gap: 4px;
+      }
+
+      .refresh-status__icon {
+        color: #2563eb;
+        cursor: help;
+        font-size: 0.95rem;
+      }
     }
   }
 }

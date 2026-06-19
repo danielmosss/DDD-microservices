@@ -52,7 +52,12 @@
         <p>Onderdeel ID: #{{ selectedOnderdeel.id }}</p>
         <ng-container *ngIf="{ timeLeft: refreshDataTimer$ | async } as timer">
           <div *ngIf="needsToRefreshData()">
-            <p *ngIf="(timer.timeLeft ?? 0) > 0">Refreshing data in {{ timer.timeLeft }} sec</p>
+            <p *ngIf="(timer.timeLeft ?? 0) > 0" class="refresh-status">
+              <i
+                class="fa-solid fa-circle-info refresh-status__icon"
+                matTooltip="Data is analyzed every 10 seconds."
+              ></i>Refreshing data in {{ timer.timeLeft }} sec
+            </p>
             <p *ngIf="timer.timeLeft === 0">Refreshing data...</p>
           </div>
         </ng-container>
