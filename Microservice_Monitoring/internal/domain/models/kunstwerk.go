@@ -1,0 +1,51 @@
+package models
+
+import "time"
+
+type KunstwerkType struct {
+	ID           int64   `db:"id" json:"id"`
+	Naam         string  `db:"naam" json:"naam"`
+	Beschrijving *string `db:"beschrijving" json:"beschrijving"`
+}
+
+type Kunstwerk struct {
+	ID               int64      `db:"id" json:"id"`
+	BeheerIdentifier string     `db:"beheer_identifier" json:"beheerIdentifier"`
+	Naam             string     `db:"naam" json:"naam"`
+	Geolocation      *string    `db:"geolocation" json:"geolocation"`
+	KunstwerkTypeID  *int64     `db:"kunstwerktype_id" json:"kunstwerkTypeId"`
+	Beschrijving     *string    `db:"beschrijving" json:"beschrijving"`
+	Deleted          bool       `db:"deleted" json:"deleted"`
+	LastSendDhUpdate *time.Time `db:"last_send_dh_update" json:"lastsenddhupdate"`
+}
+
+type KunstwerkDetail struct {
+	Kunstwerk     Kunstwerk     `json:"kunstwerk"`
+	KunstwerkType KunstwerkType `json:"kunstwerkType"`
+}
+
+type KunstwerkOnderdeel struct {
+	ID          int64  `db:"id" json:"id"`
+	KunstwerkId int64  `db:"kunstwerk_id" json:"kunstwerk_id"`
+	Naam        string `db:"naam" json:"naam"`
+	ParentId    *int64 `db:"parent_id" json:"parentId"`
+	Deleted     bool   `db:"deleted" json:"deleted"`
+}
+
+type KunstwerkOnderdeelMetSensor struct {
+	ID          int64   `db:"id" json:"id"`
+	KunstwerkId int64   `db:"kunstwerk_id" json:"kunstwerk_id"`
+	Naam        string  `db:"naam" json:"naam"`
+	ParentId    *int64  `db:"parent_id" json:"parentId"`
+	Deleted     bool    `db:"deleted" json:"deleted"`
+	SensorIds   []int64 `db:"sensor_ids" json:"sensorIds"`
+}
+
+type CreateOnderdeelRequest struct {
+	Naam              string `json:"naam"`
+	ParentOnderdeelID *int64 `json:"parentOnderdeelId"`
+}
+
+type DeleteDataRequest struct {
+	PreserveSensorData bool `json:"preserveSensorData"`
+}

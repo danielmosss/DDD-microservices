@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content class="dialog-content">
+    <div class="warning-block">
+      <strong>{{ data.targetLabel }}</strong>
+      <span>{{ data.message }}</span>
+    </div>
+
+    <label class="option-row">
+      <input type="radio" formControlName="preserveSensorData" [value]="true" />
+      <span>
+        <strong>Data behouden</strong>
+        <small>Markeer als verwijderd met <code>deleted = true</code>. Metingen, afwijkingen en configuratie blijven bewaard.</small>
+      </span>
+    </label>
+
+    <label class="option-row destructive">
+      <input type="radio" formControlName="preserveSensorData" [value]="false" />
+      <span>
+        <strong>Data definitief verwijderen</strong>
+        <small>Verwijder sensoren, sensorconfiguratie, metingen en afwijkingen permanent.</small>
+      </span>
+    </label>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button matButton="outlined" type="button" mat-dialog-close>Annuleren</button>
+    <button matButton="filled" type="submit">Verwijderen</button>
+  </mat-dialog-actions>
+</form>
