@@ -59,6 +59,17 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Create .env for CI
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=monitoring_database_user
+          POSTGRES_PASSWORD=ci_test_password
+          POSTGRES_DB=monitoring
+          POSTGRES_PORT=5432
+          DATABASE_URL=postgres://monitoring_database_user:ci_test_password@timescaledb:5432/monitoring?sslmode=disable
+          NATS_URL=nats://nats:4222
+          EOF
+
       - name: Start stack for integration tests
         run: docker compose up -d --build monitoring-service
 
