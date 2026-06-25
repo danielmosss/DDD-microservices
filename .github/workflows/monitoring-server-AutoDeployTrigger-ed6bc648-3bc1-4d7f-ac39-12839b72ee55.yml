@@ -35,15 +35,12 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}/Microservice_Monitoring
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
+          dockerfilePath: Dockerfile
           registryUrl: microservice.azurecr.io
           registryUsername: ${{ secrets.MONITORINGSERVER_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.MONITORINGSERVER_REGISTRY_PASSWORD }}
           containerAppName: monitoring-server
           resourceGroup: DDD
           imageToBuild: microservice.azurecr.io/monitoring-server:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
 
 

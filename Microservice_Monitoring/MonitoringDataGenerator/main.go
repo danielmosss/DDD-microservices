@@ -35,13 +35,9 @@ func init() {
 func main() {
 	// Initialize database connection
 	var err error
-
-	// Connection string - adjust based on where you're running this
-	// From local machine: localhost:5432
-	// From Docker container: timescaledb:5432
 	connString := os.Getenv("DATABASE_URL")
 	if connString == "" {
-		connString = "postgres://user:password@localhost:5432/monitoring?sslmode=disable"
+		log.Fatal("DATABASE_URL environment variable is niet gezet")
 	}
 
 	dbPool, err = pgxpool.New(context.Background(), connString)

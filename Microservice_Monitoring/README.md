@@ -1,5 +1,25 @@
 # Microservice Monitoring
 
+## Configuratie via .env
+
+Alle runtime settings staan nu in environment variabelen, niet meer hardcoded in compose of applicatiecode.
+
+Voor lokaal ontwikkelen:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Pas daarna de waarden in `.env` aan (minimaal `POSTGRES_PASSWORD`, `DATABASE_URL`, eventueel `NATS_URL`).
+
+Voor Azure/public deployment:
+
+```powershell
+Copy-Item .env.azure.example .env.azure
+```
+
+Zet in `.env.azure` de externe connecties (bijv. Azure PostgreSQL) en image tag.
+
 ## Swagger docs genereren
 
 Voer uit in de root van het project:
@@ -63,6 +83,8 @@ Voer uit in de root van het project:
 ```powershell
 docker compose up -d
 ```
+
+De lokale compose gebruikt waarden uit `.env`.
 
 Wanneer je code changes heb gedaan en dan opnieuw docker wil builden:
 ```powershell
@@ -147,3 +169,22 @@ Wil je ook de database-volume opruimen (let op: data gaat verloren):
 ```powershell
 docker compose --profile generator down -v
 ```
+
+## Azure container deployment (zonder lokale Postgres container)
+
+Gebruik voor cloud deployment de aparte compose file met alleen `monitoring-service`:
+
+```powershell
+docker compose --env-file .env.azure -f docker-compose.azure.yml config
+docker compose --env-file .env.azure -f docker-compose.azure.yml up -d
+```
+
+Daarmee start je geen `timescaledb` container, en wijst `DATABASE_URL` naar jouw externe Azure PostgreSQL.
+
+Voor build + push naar ACR (voorbeeld):
+
+```powershell
+az acr build --registry <acr-naam> --image monitoring-service:latest .
+```
+
+Daarna deploy je die image met env vars uit `.env.azure` in je Azure runtime (bijv. Container Apps, Web App for Containers of AKS).
