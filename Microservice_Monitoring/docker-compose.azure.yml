@@ -1,8 +1,0 @@
-services:
-  monitoring-service:
-    image: ${MONITORING_SERVICE_IMAGE:?Set MONITORING_SERVICE_IMAGE in .env.azure}
-    environment:
-      - DATABASE_URL=${DATABASE_URL:?Set DATABASE_URL in .env.azure}
-      - NATS_URL=${NATS_URL:?Set NATS_URL in .env.azure}
-    ports:
-      - "${PORT:-8080}:8080"

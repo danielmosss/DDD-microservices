@@ -14,11 +14,26 @@ Pas daarna de waarden in `.env` aan (minimaal `POSTGRES_PASSWORD`, `DATABASE_URL
 
 Voor Azure/public deployment:
 
-```powershell
-Copy-Item .env.azure.example .env.azure
-```
+| Runtime | Waar secrets zetten |
+|---|---|
+| **Container Apps** | *Secrets* tab in de portal, of `az containerapp secret set` |
+| **GitHub Actions** | *Settings → Secrets and variables → Actions* in de repository |
 
-Zet in `.env.azure` de externe connecties (bijv. Azure PostgreSQL) en image tag.
+De volgende variabelen moeten als secret worden ingesteld:
+
+- `DATABASE_URL` – volledige connectiestring naar de Azure PostgreSQL instantie
+- `NATS_URL` – URL van de externe NATS JetStream instantie
+- `MONITORING_SERVICE_IMAGE` – volledige image tag (bijv. `<acr-naam>.azurecr.io/monitoring-service:latest`)
+
+Bij een GitHub Actions deployment geef je de secrets mee als environment variabelen in de workflow step:
+
+```yaml
+- name: Deploy to Azure Container Apps
+  env:
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    NATS_URL: ${{ secrets.NATS_URL }}
+    MONITORING_SERVICE_IMAGE: ${{ secrets.MONITORING_SERVICE_IMAGE }}
+```
 
 ## Swagger docs genereren
 
